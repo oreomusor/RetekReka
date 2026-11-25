@@ -102,7 +102,7 @@ body{transition:background .6s}
   <div class="grid" id="grid"></div>
   <div class="next" id="nextmeet"></div>
   <div class="panel" id="panel" hidden>
-    <strong id="ptitle"></strong>
+    <button class="chip" id="pclose" style="float:right">✕ Bezár</button><strong id="ptitle"></strong>
     <label class="chk"><input type="checkbox" id="met"> Ezen a napon találkozunk ❤</label>
     <div class="chips" id="chips"></div>
     <textarea id="plan" placeholder="Mi a terv? (pl. focimeccs, tanulás, családi program)"></textarea>
@@ -188,7 +188,7 @@ body{transition:background .6s}
     <h2>🍳 Mit főzzek neked a következő találkozónál?</h2>
     <div class="stat" style="margin-top:0">Írd be, mit kérnél, hogy főzzön neked a másik, amikor legközelebb találkoztok.</div>
     <div class="chips" id="cookchips"></div>
-    <input id="cooktxt" autocomplete="off" placeholder="Pl. gulyásleves, palacsinta…">
+    <input id="cooktxt" autocomplete="off" placeholder="Pl. carbonara, lasagne…">
     <button class="save" id="cooksave">Elküldöm</button>
     <div id="cooklist" style="margin-top:8px"></div>
   </section>
@@ -205,7 +205,7 @@ body{transition:background .6s}
     <div class="note">Véletlenszerűen választ egyet a még meg nem csinált ötletek közül.</div>
   </section>
   <section class="card">
-    <h2>💡 Ötlet a hatba</h2>
+    <h2>💡 Ötlet a kalapba</h2>
     <input id="rdtxt" autocomplete="off" placeholder="Írj be egy randiötletet (titok marad)…">
     <button class="save" id="rdadd">Hozzáadás</button>
     <div id="rdlist" style="margin-top:10px"></div>
@@ -266,13 +266,17 @@ function renderMeters(){
     var cr=h.querySelector(".cr");
     function setH(x){cr.setAttribute("y",22-22*x/100);cr.setAttribute("height",22*x/100+0.5)}
     setH(v);
-    var s=document.createElement("input");s.type="range";s.min=0;s.max=100;s.step=1;s.value=v;s.className="sl";
-    s.setAttribute("aria-label",NAMES[k]+" hiánya százalékban");
-    s.disabled=(me!==k)||v<30;
-    s.oninput=function(){dragging=true;var x=+s.value;setH(x);l.querySelector(".pc").textContent=x+"% hiány"};
-    s.onchange=function(){commitMiss(k,+s.value);renderMeters()};
-    s.onpointerup=function(){commitMiss(k,+s.value);renderMeters()};
-    h.appendChild(s);
+    var sv=h.querySelector("svg"),can=(me===k)&&v>=30;
+    if(me===k){sv.style.touchAction="none";sv.style.cursor=can?"ns-resize":"default"}
+    if(can){
+      var val=v;
+      var from=function(ev){var r=sv.getBoundingClientRect();val=Math.max(0,Math.min(100,Math.round((r.bottom-ev.clientY)/r.height*100)));setH(val);l.querySelector(".pc").textContent=val+"% hiány"};
+      sv.onpointerdown=function(ev){dragging=true;try{sv.setPointerCapture(ev.pointerId)}catch(e){}from(ev);ev.preventDefault()};
+      sv.onpointermove=function(ev){if(dragging)from(ev)};
+      var fin=function(){if(!dragging)return;dragging=false;commitMiss(k,val);renderMeters()};
+      sv.onpointerup=fin;sv.onpointercancel=fin;
+      var tip=document.createElement("div");tip.className="hd";tip.style.textAlign="center";tip.textContent="👆 Húzd a szíved fel-le a hiány beállításához";h.appendChild(tip);
+    }
     row.appendChild(l);row.appendChild(h);
     if(me===k&&v<30){var up=document.createElement("label");up.className="up";up.textContent="📷 30% alatt vagy – tölts fel egy képet, hogy újra felvihesd";var fi=document.createElement("input");fi.type="file";fi.accept="image/*";fi.hidden=true;up.appendChild(fi);fi.onchange=function(){if(fi.files[0])uploadPhoto(k,fi.files[0],up)};row.appendChild(up)}
     if(photos[k]){var im=document.createElement("img");im.src=photos[k];im.className="ph";im.alt=NAMES[k]+" képe";row.appendChild(im);
@@ -300,7 +304,7 @@ function renderCal(){
     if(info.met){var h=document.createElement("span");h.className="h";h.textContent="❤";b.appendChild(h)}
     if(info.plan){var p=document.createElement("span");p.className="dot";b.appendChild(p)}
     var ed=evDates[k];if(ed){var ee=document.createElement("span");ee.className="e";ee.textContent=ed==="imp"?"⭐":"⏰";b.appendChild(ee)}
-    b.onclick=function(){sel=k;openPanel();renderCal()};
+    b.onclick=function(){if(sel===k&&!document.getElementById("panel").hidden){closePanel()}else{sel=k;openPanel();renderCal()}};
     g.appendChild(b);
   })(d)}
   var up=Object.keys(state.days).filter(function(k){return state.days[k].met&&k>=t}).sort()[0];
@@ -309,6 +313,8 @@ function renderCal(){
     nm.textContent=diff===0?"Ma találkozunk! ❤":"Következő találkozó: "+(+p[1])+". hó "+(+p[2])+". – "+diff+" nap múlva ❤"}
   else nm.textContent="Jelölj be egy napot, amikor találkozunk!";
 }
+function closePanel(){sel=null;document.getElementById("panel").hidden=true;renderCal()}
+document.getElementById("pclose").onclick=closePanel;
 function openPanel(){
   var p=document.getElementById("panel");p.hidden=false;renderDayEv();
   var info=state.days[sel]||{};var q=sel.split("-");
@@ -328,8 +334,8 @@ document.getElementById("save").onclick=function(){
   saveDay(sel);renderCal();renderMeters();
   var b=document.getElementById("save");b.textContent="Mentve ❤";setTimeout(function(){b.textContent="Mentés"},1200);
 };
-document.getElementById("prev").onclick=function(){vm--;if(vm<0){vm=11;vy--}renderCal()};
-document.getElementById("next").onclick=function(){vm++;if(vm>11){vm=0;vy++}renderCal()};
+document.getElementById("prev").onclick=function(){vm--;if(vm<0){vm=11;vy--}sel=null;document.getElementById("panel").hidden=true;renderCal()};
+document.getElementById("next").onclick=function(){vm++;if(vm>11){vm=0;vy++}sel=null;document.getElementById("panel").hidden=true;renderCal()};
 
 load();if(!state.t)state.t={};renderWho();renderMeters();renderCal();
 setInterval(function(){if(!dragging)renderMeters()},30000);
@@ -383,7 +389,7 @@ function pollQa(){
 document.querySelectorAll(".tab").forEach(function(b){b.onclick=function(){
   document.querySelectorAll(".tab").forEach(function(x){x.className="tab"+(x===b?" sel":"")});
   ["home","q","m","g","f","r"].forEach(function(t){document.getElementById("tab-"+t).hidden=b.dataset.tab!==t});
-  if(b.dataset.tab==="q")renderQ();if(b.dataset.tab==="g")renderG();if(b.dataset.tab==="f")renderF();if(b.dataset.tab==="r")renderRd()}});
+  closePanel();if(b.dataset.tab==="q")renderQ();if(b.dataset.tab==="g")renderG();if(b.dataset.tab==="f")renderF();if(b.dataset.tab==="r")renderRd()}});
 setInterval(renderQ,60000);renderQ();
 var MOODS=[["😭","sírós"],["😴","fáradt"],["😊","boldog"],["😢","szomorú"],["😠","ideges"],["😄","vidám"],null,["🤒","beteg"],["🥱","unatkozik"]];
 function ago(ts){var m=Math.floor((Date.now()-ts)/6e4);return m<1?"most":m<60?m+" perce":m<1440?Math.floor(m/60)+" órája":Math.floor(m/1440)+" napja"}
@@ -680,7 +686,7 @@ function pollBS(){
   }).catch(function(){});
 }
 renderBS();
-var cook={},cookJson="",CIDEAS=["Rántott hús","Gulyásleves","Spagetti","Pizza","Palacsinta","Rakott krumpli","Lasagne","Hamburger"];
+var cook={},cookJson="",CIDEAS=["Spagetti carbonara","Bolognai","Lasagne","Pizza","Gnocchi","Cannelloni","Tejszínes sajtos tészta","Tiramisu"];
 function renderCook(){
   var h="";["a","b"].forEach(function(k){var o=cook[k];h+='<div class="ans"><b>'+esc(NAMES[k])+' kéri:</b>'+(o&&o.t?esc(o.t):"még nem írt semmit")+'</div>'});
   if(me&&cook[me]&&cook[me].t)h+='<button class="chip" id="cookdel">🗑 Törlés (megvolt a főzés)</button>';
@@ -779,7 +785,7 @@ function renderRd(){
   if(ok)ok.onclick=function(){var t=Date.now();if(rd.pick&&rd.ideas&&rd.ideas[rd.pick.id]){rd.ideas[rd.pick.id].done=t;if(base)remote("PUT","rd/ideas/"+rd.pick.id+"/done",t).catch(function(){})}
     delete rd.pick;lastWrite=Date.now();if(base)remote("DELETE","rd/pick").catch(function(){});renderRd()};
   var mineN=pend.filter(function(x){return x.e.by===me}).length;
-  h+=pend.length?'<div class="stat">🤫 '+pend.length+' meglepetés-ötlet van a hatban (te ennyit írtál: '+mineN+'). A lista titkos, amíg ki nem sorsoljátok!</div>':'<div class="stat">Még nincs ötlet a hatban, írj be egyet!</div>';
+  h+=pend.length?'<div class="stat">🤫 '+pend.length+' meglepetés-ötlet van a kalapban (te ennyit írtál: '+mineN+'). A lista titkos, amíg ki nem sorsoljátok!</div>':'<div class="stat">Még nincs ötlet a kalapban, írj be egyet!</div>';
   if(done.length){h+='<div class="hq">✅ Már megcsináltuk</div>';done.forEach(function(x){h+='<div class="ans" style="opacity:.7"><b>'+rdBy(x.e.by)+'</b>'+esc(x.e.txt)+'</div>'})}
   document.getElementById("rdlist").innerHTML=h}
 document.getElementById("rdadd").onclick=function(){var i=document.getElementById("rdtxt"),t=i.value.trim();if(!me||!t)return;
