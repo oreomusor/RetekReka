@@ -27,7 +27,7 @@ h2{margin:0 0 10px;font-size:1.1rem}
 .qtext{font-size:1.25rem;font-weight:700;text-align:center;margin:6px 0 14px;color:var(--pink)}
 #qbox textarea{width:100%;border:2px solid var(--soft);border-radius:12px;padding:10px;font:inherit;background:var(--bg);color:var(--tx);resize:vertical;min-height:90px;margin-bottom:8px}
 .ans{background:var(--bg);border-radius:14px;padding:10px 12px;margin:8px 0;white-space:pre-wrap;word-break:break-word}.ans b{display:block;color:var(--pink);font-size:.85rem;margin-bottom:2px}
-.hq{font-weight:600;margin:14px 0 2px}.hd{font-size:.78rem;color:var(--mut)}.save:disabled{opacity:.35;cursor:default}.stat{text-align:center;color:var(--mut);margin:8px 0}#gin,#ftxt,#cooktxt,#rdtxt{width:100%;border:2px solid var(--soft);border-radius:12px;padding:12px;font:inherit;background:var(--bg);color:var(--tx);margin-bottom:8px}.tab{font-size:.8rem;padding:10px 4px;min-width:30%}.tabs{flex-wrap:wrap}.tin{border:2px solid var(--soft);border-radius:12px;padding:10px;font:inherit;background:var(--bg);color:var(--tx)}.day .e{position:absolute;top:1px;left:3px;font-size:.6rem}.cdn{font-weight:700;color:var(--pink);font-size:1.1rem;margin:4px 0}.chip.sel{background:var(--pink);color:#fff}.c4{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;background:#2d5fd1;padding:8px;border-radius:16px}.c4 .c{aspect-ratio:1;border-radius:50%;background:var(--bg);cursor:pointer}.c4 .c.a{background:#ff4d79}.c4 .c.b{background:#ffd23f}.bb{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;background:#2d5fd1;padding:5px;border-radius:12px;margin-bottom:8px}.bb .x{aspect-ratio:1;background:#8ec5ff;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.75rem;color:#fff;cursor:pointer}.bb .x.s{background:#4a4f57}.bb .x.m{background:#d7ecff;color:#2d5fd1}.bb .x.h{background:#ff4d4d}.bb .x.k{background:#7a0000}.c4 .c.win{box-shadow:inset 0 0 0 4px #fff}.up{display:block;text-align:center;background:var(--soft);border-radius:14px;padding:10px;margin-top:6px;cursor:pointer;font-weight:600;font-size:.9rem}.ph{display:block;width:60%;max-width:200px;margin:8px auto 0;border-radius:14px}.row:last-child{margin-bottom:0}
+.hq{font-weight:600;margin:14px 0 2px}.hd{font-size:.78rem;color:var(--mut)}.save:disabled{opacity:.35;cursor:default}.stat{text-align:center;color:var(--mut);margin:8px 0}#gin,#ftxt,#cooktxt,#rdtxt{width:100%;border:2px solid var(--soft);border-radius:12px;padding:12px;font:inherit;background:var(--bg);color:var(--tx);margin-bottom:8px}.tab{font-size:.8rem;padding:10px 4px;min-width:30%}.tabs{flex-wrap:wrap}.tin{border:2px solid var(--soft);border-radius:12px;padding:10px;font:inherit;background:var(--bg);color:var(--tx)}.day .e{position:absolute;top:1px;left:3px;font-size:.6rem}.cdn{font-weight:700;color:var(--pink);font-size:1.1rem;margin:4px 0}#m80{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px}#m80[hidden]{display:none}.mbox{background:var(--card);border-radius:20px;padding:18px;max-width:420px;width:100%;text-align:center}.mbox textarea{width:100%;border:2px solid var(--soft);border-radius:12px;padding:10px;font:inherit;background:var(--bg);color:var(--tx);resize:vertical;min-height:80px}.chip.sel{background:var(--pink);color:#fff}.c4{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;background:#2d5fd1;padding:8px;border-radius:16px}.c4 .c{aspect-ratio:1;border-radius:50%;background:var(--bg);cursor:pointer}.c4 .c.a{background:#ff4d79}.c4 .c.b{background:#ffd23f}.bb{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;background:#2d5fd1;padding:5px;border-radius:12px;margin-bottom:8px}.bb .x{aspect-ratio:1;background:#8ec5ff;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.75rem;color:#fff;cursor:pointer}.bb .x.s{background:#4a4f57}.bb .x.m{background:#d7ecff;color:#2d5fd1}.bb .x.h{background:#ff4d4d}.bb .x.k{background:#7a0000}.c4 .c.win{box-shadow:inset 0 0 0 4px #fff}.up{display:block;text-align:center;background:var(--soft);border-radius:14px;padding:10px;margin-top:6px;cursor:pointer;font-weight:600;font-size:.9rem}.ph{display:block;width:60%;max-width:200px;margin:8px auto 0;border-radius:14px}.row:last-child{margin-bottom:0}
 .lbl{display:flex;justify-content:space-between;font-size:.95rem;margin-bottom:4px}
 .lbl b{font-weight:600}.lbl span{color:var(--mut)}
 .msg{text-align:center;margin-top:10px;color:var(--pink);font-weight:600;min-height:1.4em}
@@ -62,6 +62,7 @@ body{transition:background .6s}
 </head>
 <body>
 <div id="gate"><div style="font-size:3rem">❤</div><h1>RetekRéka</h1><p class="sub">Ki vagy te?</p><button class="gbtn" data-k="a">Filius vagyok</button><button class="gbtn" data-k="b">Réka vagyok</button></div>
+<div id="m80" hidden><div class="mbox"><div style="font-size:2.4rem">💘</div><h2 id="m80t" style="color:var(--pink)"></h2><p class="sub" style="margin:0 0 10px">Mielőtt ennyire felviszed a szíved: írd le, mi hiányzik a legjobban a másikban!</p><textarea id="m80in" placeholder="Pl. az ölelésed, ahogy nevetsz…"></textarea><div class="stat" id="m80msg"></div><button class="save" id="m80ok">Elküldöm</button><button class="chip" id="m80no" style="margin-top:8px">Mégsem</button></div></div>
 <main hidden>
 <h1>RetekRéka ❤</h1>
 <p class="sub">Pécs és köztünk a távolság – de a szívünk közel van.</p>
@@ -84,6 +85,8 @@ body{transition:background .6s}
   
   <div id="meters"></div>
   <div class="msg" id="msg"></div>
+  <div class="ans" id="nearbanner" hidden style="text-align:center;color:var(--pink);font-weight:700">💔 El ne felejts teljesen! Told feljebb a szíved.</div>
+  <div style="text-align:center"><button class="chip" id="notifbtn" hidden>🔔 Értesítések bekapcsolása</button></div>
   <div class="note">Ha 30 percig nem nyúlsz a csúszkához, a hiány 10%-kal csökken. 30% alatt csak egy kép feltöltésével vihető fel újra. A találkozós napokon nem csökken.</div>
   <div class="note" id="syncnote"></div>
 </section>
@@ -259,7 +262,7 @@ function renderMeters(){
     var v=eff(k);
     var row=document.createElement("div");row.className="row";
     var l=document.createElement("div");l.className="lbl";
-    l.innerHTML="<b>"+NAMES[k]+"</b><span class='pc'>"+v+"% hiány</span>";
+    l.innerHTML="<b>"+NAMES[k]+"</b><span class='pc'></span>";
     var P="M12 21.2 3.2 12.6C.6 10 .6 6 3.2 3.6c2.4-2.2 6-1.8 8 .6l.8 1 .8-1c2-2.4 5.6-2.8 8-.6 2.6 2.4 2.6 6.4 0 9L12 21.2z";
     var h=document.createElement("div");
     h.innerHTML='<svg class="bigheart" viewBox="0 0 24 22" aria-hidden="true"><defs><clipPath id="c'+k+'"><rect class="cr" x="0" width="24"/></clipPath></defs><path class="bg" d="'+P+'"/><path class="fg" clip-path="url(#c'+k+')" d="'+P+'"/></svg>';
@@ -270,14 +273,15 @@ function renderMeters(){
     if(me===k){sv.style.touchAction="none";sv.style.cursor=can?"ns-resize":"default"}
     if(can){
       var val=v;
-      var from=function(ev){var r=sv.getBoundingClientRect();val=Math.max(0,Math.min(100,Math.round((r.bottom-ev.clientY)/r.height*100)));setH(val);l.querySelector(".pc").textContent=val+"% hiány"};
+      var from=function(ev){var r=sv.getBoundingClientRect();val=Math.max(0,Math.min(100,Math.round((r.bottom-ev.clientY)/r.height*100)));setH(val)};
       sv.onpointerdown=function(ev){dragging=true;try{sv.setPointerCapture(ev.pointerId)}catch(e){}from(ev);ev.preventDefault()};
       sv.onpointermove=function(ev){if(dragging)from(ev)};
-      var fin=function(){if(!dragging)return;dragging=false;commitMiss(k,val);renderMeters()};
+      var fin=function(){if(!dragging)return;dragging=false;if(val>=80&&v<80){ask80(k,val);return}commitMiss(k,val);renderMeters()};
       sv.onpointerup=fin;sv.onpointercancel=fin;
       var tip=document.createElement("div");tip.className="hd";tip.style.textAlign="center";tip.textContent="👆 Húzd a szíved fel-le a hiány beállításához";h.appendChild(tip);
     }
     row.appendChild(l);row.appendChild(h);
+    if(state.mm&&state.mm[k]&&state.mm[k].t){var mb=document.createElement("div");mb.className="ans";mb.innerHTML='<b>💌 '+esc(NAMES[k])+' ezt hiányolja a legjobban ('+ago(state.mm[k].ts)+'):</b>'+esc(state.mm[k].t);row.appendChild(mb)}
     if(me===k&&v<30){var up=document.createElement("label");up.className="up";up.textContent="📷 30% alatt vagy – tölts fel egy képet, hogy újra felvihesd";var fi=document.createElement("input");fi.type="file";fi.accept="image/*";fi.hidden=true;up.appendChild(fi);fi.onchange=function(){if(fi.files[0])uploadPhoto(k,fi.files[0],up)};row.appendChild(up)}
     if(photos[k]){var im=document.createElement("img");im.src=photos[k];im.className="ph";im.alt=NAMES[k]+" képe";row.appendChild(im);
       if(me===k){var db=document.createElement("button");db.className="chip";db.style.cssText="display:block;margin:6px auto 0";db.textContent="🗑 Kép törlése";db.onclick=function(){if(confirm("Biztosan törlöd a képet?"))delPhoto(k)};row.appendChild(db)}}box.appendChild(row);
@@ -455,6 +459,19 @@ function renderCD(){
       sub=d+" nap "+h+" óra "+m+" perc ("+dt+")"}}
   el.innerHTML='<svg viewBox="0 0 130 130" style="width:190px;max-width:70%;display:block;margin:0 auto" aria-hidden="true"><circle cx="65" cy="65" r="52" fill="none" stroke="var(--soft)" stroke-width="10"/><circle cx="65" cy="65" r="52" fill="none" stroke="var(--pink)" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+(C*(1-frac)).toFixed(1)+'" transform="rotate(-90 65 65)"/><text x="65" y="68" text-anchor="middle" font-size="34" font-weight="700" style="fill:var(--tx)">'+big+'</text><text x="65" y="88" text-anchor="middle" font-size="13" style="fill:var(--mut)">'+unit+'</text></svg><div class="stat">'+esc(sub)+'</div>';
 }
+function notifyMe(t,b){
+  try{if("Notification" in window&&Notification.permission==="granted")new Notification(t,{body:b})}catch(e){}
+  try{if(navigator.vibrate)navigator.vibrate([200,100,200])}catch(e){}}
+function checkNear(){
+  var nb=document.getElementById("notifbtn");
+  nb.hidden=!("Notification" in window)||Notification.permission!=="default";
+  var ban=document.getElementById("nearbanner");if(!me){ban.hidden=true;return}
+  var v=eff(me),near=v>=30&&v<=40;ban.hidden=!near;
+  if(near){var key2="rr_nt_"+me,last=0;try{last=+localStorage.getItem(key2)||0}catch(e){}
+    if(Date.now()-last>3*36e5){try{localStorage.setItem(key2,String(Date.now()))}catch(e){}notifyMe("RetekRéka ❤","El ne felejts teljesen! 💔")}}
+}
+document.getElementById("notifbtn").onclick=function(){
+  try{Notification.requestPermission().then(function(){checkNear()})}catch(e){}};
 function tgActive(){var g=state.together;return !!(g&&g.s&&!g.w&&Date.now()-g.s<1728e5)}
 function tgSave(){try{localStorage.setItem("rr_state",JSON.stringify(state))}catch(e){}}
 function tgStart(){if(!me)return;var o={s:Date.now(),by:me};state.together=o;tgSave();
@@ -472,7 +489,7 @@ function renderTG(){
   else el.innerHTML="";
   var a=document.getElementById("tgstart");if(a)a.onclick=tgStart;var b=document.getElementById("tgend");if(b)b.onclick=tgEnd;
 }
-var _rm=renderMeters;renderMeters=function(){_rm();renderMood();renderSleep();renderCD();renderTG()};
+var _rm=renderMeters;renderMeters=function(){_rm();renderMood();renderSleep();renderCD();renderTG();checkNear()};
 setInterval(renderMood,60000);renderMood();renderSleep();renderCD();setInterval(renderCD,20000);
 var WORDS=["Michael Jordan", "LeBron James", "Kobe Bryant", "Stephen Curry", "Shaquille O'Neal", "Mike Tyson", "Muhammad Ali", "Conor McGregor", "Khabib Nurmagomedov", "Usain Bolt", "Michael Phelps", "Roger Federer", "Rafael Nadal", "Novak Djokovic", "Lewis Hamilton", "Max Verstappen", "Michael Schumacher", "Ayrton Senna", "Magnus Carlsen", "Elon Musk", "Steve Jobs", "Bill Gates", "Mark Zuckerberg", "Albert Einstein", "Nikola Tesla", "Isaac Newton", "Leonardo da Vinci", "Napóleon", "Kleopátra", "Julius Caesar", "William Shakespeare", "Michael Jackson", "Freddie Mercury", "Elvis Presley", "Bob Marley", "Tupac", "Eminem", "Snoop Dogg", "Kanye West", "Taylor Swift", "Rihanna", "Beyoncé", "Billie Eilish", "Dua Lipa", "Leonardo DiCaprio", "Brad Pitt", "Johnny Depp", "Tom Cruise", "Dwayne Johnson", "Keanu Reeves", "árnyék", "csapda", "robbanás", "kulcs", "maszk", "tükör", "sziget", "torony", "láng", "füst", "szellem", "sivatag", "vihar", "mágnes", "kártya", "bomba", "tőr", "kalóz", "kincs", "méreg", "sárkány", "szélvész", "farkas", "sakk", "kapu", "hold", "börtön", "szökés", "kém", "hajsza", "bosszú", "titok", "zsákmány", "szakadék", "célkereszt", "párbaj", "labirintus", "villám", "lőszer", "rajtaütés", "sziréna", "álca", "rejtély", "zár", "végjáték", "penge", "bázis", "kísértet", "kód", "hamis", "fegyver", "hős", "gonosztevő", "csata", "túlélés", "tét", "feszültség", "roham", "lázadás", "mélység", "őrszem", "vakmerő", "sötétség", "szikra", "pánik", "visszaszámlálás", "átok", "barlang", "bilincs", "biliárd", "cirkusz", "drón", "dzsungel", "ecset", "egyenlet", "érem", "eskü", "gleccser", "gyémánt", "gyertya", "harang", "híd", "iránytű", "kalapács", "kamera", "kapufa", "kastély", "képernyő", "kilátó", "kocka", "koponya", "kristály", "lakat", "lift", "maraton", "mérleg", "metró", "mikrofon", "mozi", "műhold", "Mátrix", "Titanic", "Batman", "Joker", "Star Wars", "Darth Vader", "Harry Potter", "Voldemort", "Gyűrűk Ura", "Gollam", "Gladiátor", "Terminátor", "Bosszúállók", "Vasember", "Pókember", "Hulk", "Thor", "Amerika Kapitány", "Deadpool", "Rozsomák", "Jurassic Park", "Alien", "Ragadozó", "Ponyvaregény", "Harcosok klubja", "Eredet", "Csillagok között", "Oppenheimer", "Barbie", "Keresztapa", "A sebhelyesarcú", "Nagymenők", "Trónok harca", "Sárkányok háza", "Breaking Bad", "Better Call Saul", "Stranger Things", "Squid Game", "Peaky Blinders", "A nagy pénzrablás", "Sherlock Holmes", "James Bond", "Indiana Jones", "Mission: Impossible", "Halálos iramban", "John Wick", "Rocky", "Rambo", "Die Hard", "Reszkessetek, betörők!", "Másnaposok", "Truman Show", "Wall Street farkasa", "Szárnyas fejvadász", "Dűne", "Avatar", "Vissza a jövőbe", "Szellemirtók", "Men in Black", "A Karib-tenger kalózai", "Jack Sparrow", "Shrek", "Szamár", "Toy Story", "Oroszlánkirály", "Jégvarázs", "Verdák", "Nemo nyomában", "Gru", "Minyonok", "Spongyabob", "Tom és Jerry", "Scooby-Doo", "Simpson család", "South Park", "Family Guy", "Rick és Morty", "Naruto", "Pokémon", "Pikachu", "Dragon Ball", "Forrest Gump", "A remény rabjai", "Halálsoron", "Hetedik", "A bárányok hallgatnak", "Hannibal Lecter", "Ragyogás", "Az", "Sikoly", "Fűrész", "Démonok között", "Walking Dead", "The Last of Us", "Witcher", "Csernobil", "Jóbarátok", "Így jártam anyátokkal", "Agymenők", "The Office", "Kártyavár", "Vikingek", "Narcos", "Fekete tükör", "Nagy Gatsby", "Viharsziget", "Kapj el, ha tudsz", "Kémek hídja", "Ryan közlegény megmentése", "Becstelen brigantyk", "Django elszabadul", "Kill Bill", "Alkonyat", "Az éhezők viadala", "Útvesztő", "A beavatott", "Narnia krónikái", "Hobbit", "Frankenstein", "Drakula", "King Kong", "Godzilla", "Transformers", "Optimus Prime", "Ninja Teknőcök", "Superman", "Wonder Woman", "Flash", "Aquaman", "Öngyilkos osztag", "Harley Quinn", "Venom", "Fekete Párduc", "Doctor Strange", "Hangya", "A galaxis őrzői", "Wall-E", "Fel!", "L'ecsó", "Agymanók", "Coco", "Szörny Rt.", "Kung Fu Panda", "Így neveld a sárkányodat", "Madagaszkár", "Jégkorszak", "Tarzan", "Aladin", "Herkules", "Mulan"],CATN=["Híres emberek","Szavak","Filmek, sorozatok, mesék"],CATR=[[0,50],[50,150],[150,300]];
 var game={},gJson="",gLast=0;
@@ -630,6 +647,15 @@ document.querySelectorAll("#gsub .pill").forEach(function(b){b.onclick=function(
   if(b.dataset.g==="c")renderC4();else if(b.dataset.g==="b")renderBS();else renderG()}});
 renderC4();
 var bs={},bsJson="",bsLast=0,bsMine="",BSN=[5,4,3,3,2];
+function ask80(k,val){
+  var ov=document.getElementById("m80"),inp=document.getElementById("m80in"),msg=document.getElementById("m80msg");
+  document.getElementById("m80t").textContent="Nagyon hiányzik valaki 💘";inp.value="";msg.textContent="";ov.hidden=false;
+  document.getElementById("m80ok").onclick=function(){var t=inp.value.trim();if(!t){msg.textContent="Írj valamit, hogy tovább tudj menni!";return}
+    state.mm=state.mm||{};var o={t:t,ts:Date.now(),v:val};state.mm[k]=o;
+    if(base){lastWrite=Date.now();remote("PUT","state/mm/"+k,o).catch(function(){})}
+    commitMiss(k,val);ov.hidden=true;renderMeters()};
+  document.getElementById("m80no").onclick=function(){ov.hidden=true;renderMeters()};
+}
 function bsRandom(){var b=[];for(var i=0;i<100;i++)b.push("0");
   BSN.forEach(function(len,j){var ok=false;while(!ok){var h=Math.random()<.5,r=Math.floor(Math.random()*(h?10:11-len)),c=Math.floor(Math.random()*(h?11-len:10)),cells=[];
     for(var k=0;k<len;k++)cells.push(h?r*10+c+k:(r+k)*10+c);
@@ -845,7 +871,7 @@ function pull(){
   fetch(base+"/state.json").then(function(r){return r.json()}).then(function(d){
     if(dragging||Date.now()-lastWrite<1500)return;
     d=d||{};var m=d.miss||{};
-    var ns={miss:{a:m.a||0,b:m.b||0},t:d.t||{},pt:d.pt||{},mood:d.mood||{},sleep:d.sleep||{},wake:d.wake||{},together:d.together||null,days:d.days||{}};
+    var ns={miss:{a:m.a||0,b:m.b||0},t:d.t||{},pt:d.pt||{},mood:d.mood||{},sleep:d.sleep||{},wake:d.wake||{},together:d.together||null,mm:d.mm||{},days:d.days||{}};
     var j=JSON.stringify(ns);note.textContent="Közösen szinkronizálva ❤";
     if(j===lastJson)return;lastJson=j;state=ns;
     ["a","b"].forEach(function(q){if(!ns.pt[q]&&photos[q]){delete photos[q];ptSeen[q]=0}});
