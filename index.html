@@ -459,16 +459,22 @@ function renderCD(){
       sub=d+" nap "+h+" óra "+m+" perc ("+dt+")"}}
   el.innerHTML='<svg viewBox="0 0 130 130" style="width:190px;max-width:70%;display:block;margin:0 auto" aria-hidden="true"><circle cx="65" cy="65" r="52" fill="none" stroke="var(--soft)" stroke-width="10"/><circle cx="65" cy="65" r="52" fill="none" stroke="var(--pink)" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+(C*(1-frac)).toFixed(1)+'" transform="rotate(-90 65 65)"/><text x="65" y="68" text-anchor="middle" font-size="34" font-weight="700" style="fill:var(--tx)">'+big+'</text><text x="65" y="88" text-anchor="middle" font-size="13" style="fill:var(--mut)">'+unit+'</text></svg><div class="stat">'+esc(sub)+'</div>';
 }
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
 function notifyMe(t,b){
-  try{if("Notification" in window&&Notification.permission==="granted")new Notification(t,{body:b})}catch(e){}
+  try{if("Notification" in window&&Notification.permission==="granted"){
+    var plain=function(){try{new Notification(t,{body:b})}catch(e){}};
+    if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration){
+      navigator.serviceWorker.getRegistration().then(function(r){if(r&&r.showNotification)r.showNotification(t,{body:b,vibrate:[200,100,200],tag:"retek-near"});else plain()}).catch(plain)}
+    else plain()}}catch(e){}
   try{if(navigator.vibrate)navigator.vibrate([200,100,200])}catch(e){}}
 function checkNear(){
   var nb=document.getElementById("notifbtn");
   nb.hidden=!("Notification" in window)||Notification.permission!=="default";
   var ban=document.getElementById("nearbanner");if(!me){ban.hidden=true;return}
-  var v=eff(me),near=v>=30&&v<=40;ban.hidden=!near;
-  if(near){var key2="rr_nt_"+me,last=0;try{last=+localStorage.getItem(key2)||0}catch(e){}
-    if(Date.now()-last>3*36e5){try{localStorage.setItem(key2,String(Date.now()))}catch(e){}notifyMe("RetekRéka ❤","El ne felejts teljesen! 💔")}}
+  var v=eff(me),near=v>=30&&v<=35,fk="rr_nt_"+me;ban.hidden=!near;
+  if(v>35){try{localStorage.removeItem(fk)}catch(e){}return}
+  if(near){var done=null;try{done=localStorage.getItem(fk)}catch(e){}
+    if(done!=="1"){try{localStorage.setItem(fk,"1")}catch(e){}notifyMe("RetekRéka ❤","El ne felejts teljesen! 💔")}}
 }
 document.getElementById("notifbtn").onclick=function(){
   try{Notification.requestPermission().then(function(){checkNear()})}catch(e){}};
