@@ -70,10 +70,34 @@ body{transition:background .6s}
 <div class="tabs"><button class="tab sel" data-tab="home">💗 Főoldal</button><button class="tab" data-tab="q">❓ Kérdés</button><button class="tab" data-tab="m">😊 Hangulat</button><button class="tab" data-tab="g">🎮 Játék</button><button class="tab" data-tab="f">🍽 Kaja</button><button class="tab" data-tab="r">💑 Randi</button></div>
 <div id="tab-home">
 
+<section class="card" id="turns" hidden>
+  <h2>🎮 Kinek a köre?</h2>
+  <div id="turnlist"></div>
+</section>
+
 <section class="card" style="text-align:center">
   <h2>Következő találkozónk</h2>
   <div id="cd"></div>
   <div id="tg" style="margin-top:10px"></div>
+</section>
+
+<section class="card" id="spcard">
+  <h2>🎧 Mit hallgatunk?</h2>
+  <div id="splist"></div>
+  <div id="spctl" style="text-align:center;margin-top:8px"></div>
+  <div id="spsetup" hidden style="margin-top:10px">
+    <div class="ans" style="font-size:.88rem">
+      <b>Egyszeri beállítás (a Premium-fiókos fél csinálja)</b>
+      1. Nyisd meg: developer.spotify.com/dashboard, és kattints a <b>Create app</b> gombra.<br>
+      2. Név és leírás tetszőleges. A <b>Redirect URI</b> mezőbe pontosan ezt írd: <b id="spredir"></b><br>
+      3. Az API-nál jelöld be a <b>Web API</b>-t, majd mentsd (Save).<br>
+      4. Az app <b>Settings → User Management</b> részén add hozzá mindkettőtök Spotify e-mail-címét.<br>
+      5. Másold ki a <b>Client ID</b>-t, és illeszd be ide:
+    </div>
+    <input id="spcid" class="tin" style="width:100%;margin:6px 0" placeholder="Client ID" autocomplete="off">
+    <button class="save" id="spsave">Mentés</button>
+  </div>
+  <div class="note" id="spmsg"></div>
 </section>
 
 <section class="card" id="impcard" hidden>
@@ -88,7 +112,6 @@ body{transition:background .6s}
   <div class="msg" id="msg"></div>
   <div class="ans" id="nearbanner" hidden style="text-align:center;color:var(--pink);font-weight:700">💔 El ne felejts teljesen! Told feljebb a szíved.</div>
   <div style="text-align:center"><button class="chip" id="notifbtn" hidden>🔔 Értesítések bekapcsolása</button></div>
-  <div class="note">Ha 30 percig nem nyúlsz a csúszkához, a hiány 10%-kal csökken. 30% alatt csak egy kép feltöltésével vihető fel újra. A találkozós napokon nem csökken.</div>
   <div class="note" id="syncnote"></div>
 </section>
 
@@ -184,7 +207,7 @@ body{transition:background .6s}
       <select id="car-trk" class="tin" style="width:100%;margin-bottom:8px"></select>
       <div class="stat" id="car-info"></div>
       <button class="save" id="car-go">▶ Indítás</button>
-      <div class="note">Filius = zöld, Réka = sárga. A joystickot told abba az irányba, amerre menni akarsz (gépen: nyilak vagy WASD). A fűben lassabb vagy. Rekordidő: a legjobb köridődet mérjük. Verseny: 7 kör, egyszerre kell játszanotok, és látjátok egymás autóját.</div>
+      <div class="note">Filius = zöld, Réka = sárga. A joystickot told abba az irányba, amerre menni akarsz (gépen: nyilak vagy WASD). Az utat fal zárja be: ha nekimész, megpördülsz és lassulsz. Rekordidő: a legjobb köridődet mérjük. Verseny: 7 kör, egyszerre kell játszanotok, és látjátok egymás autóját.</div>
     </div>
     <div id="car-play" hidden>
       <div class="stat" id="car-hud"></div>
@@ -243,7 +266,7 @@ var MSGS=["Még nem nyomtál semmit 🙂","Egy kicsit hiányzol","Néha eszembe 
 var HEART='<svg viewBox="0 0 24 22" aria-hidden="true"><path d="M12 21.2 3.2 12.6C.6 10 .6 6 3.2 3.6c2.4-2.2 6-1.8 8 .6l.8 1 .8-1c2-2.4 5.6-2.8 8-.6 2.6 2.4 2.6 6.4 0 9L12 21.2z"/></svg>';
 var CHIPS=["Focimeccs ⚽","Tanulás 📚","Családi program 👨‍👩‍👧","Séta 🚶","Mozi 🎬","Vacsora 🍝"];
 var state={miss:{a:0,b:0},t:{},days:{}};var dragging=false;
-function eff(k){var v=state.miss[k]||0,t=state.t&&state.t[k];if(!t)return v;var sl=state.sleep&&state.sleep[k],rf=(sl&&sl.s&&!sl.w)?sl.s:Date.now();var tg=state.together;if(tg&&tg.s&&!tg.w&&Date.now()-tg.s<1728e5&&tg.s<rf)rf=Math.max(t,tg.s);var el=rf-t-metMs(t,rf);return Math.max(0,v-10*Math.max(0,Math.floor(el/1800000)))}
+function eff(k){var v=state.miss[k]||0,t=state.t&&state.t[k];if(!t)return v;var sl=state.sleep&&state.sleep[k],rf=(sl&&sl.s&&!sl.w)?sl.s:Date.now();var tg=state.together;if(tg&&tg.s&&!tg.w&&Date.now()-tg.s<1728e5&&tg.s<rf)rf=Math.max(t,tg.s);var el=rf-t-metMs(t,rf);return Math.max(0,v-5*Math.max(0,el/3600000))}
 function metMs(a,b){var tot=0,d=new Date(a);d.setHours(0,0,0,0);
   for(var n=0;d.getTime()<b&&n<120;n++){var st=d.getTime(),nx=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1).getTime(),
     inf=state.days&&state.days[key(d.getFullYear(),d.getMonth(),d.getDate())];
@@ -298,7 +321,7 @@ function renderMeters(){
       sv.onpointermove=function(ev){if(dragging)from(ev)};
       var fin=function(){if(!dragging)return;dragging=false;if(val>=80&&v<80){ask80(k,val);return}commitMiss(k,val);renderMeters()};
       sv.onpointerup=fin;sv.onpointercancel=fin;
-      var tip=document.createElement("div");tip.className="hd";tip.style.textAlign="center";tip.textContent="👆 Húzd a szíved fel-le a hiány beállításához";h.appendChild(tip);
+      
     }
     row.appendChild(l);row.appendChild(h);
     if(state.mm&&state.mm[k]&&state.mm[k].t){var mb=document.createElement("div");mb.className="ans";mb.innerHTML='<b>💌 '+esc(NAMES[k])+' ezt hiányolja a legjobban ('+ago(state.mm[k].ts)+'):</b>'+esc(state.mm[k].t);row.appendChild(mb)}
@@ -362,7 +385,7 @@ document.getElementById("prev").onclick=function(){vm--;if(vm<0){vm=11;vy--}sel=
 document.getElementById("next").onclick=function(){vm++;if(vm>11){vm=0;vy++}sel=null;document.getElementById("panel").hidden=true;renderCal()};
 
 load();if(!state.t)state.t={};renderWho();renderMeters();renderCal();
-setInterval(function(){if(!dragging)renderMeters()},30000);
+setInterval(function(){if(!dragging)renderMeters()},10000);
 
 var QS=["Mi volt az első dolog, ami megtetszett bennem, amikor találkoztunk?", "Melyik közös emlékünkre gondolsz vissza a legszívesebben az utóbbi időből?", "Mi az a legapróbb dolog, amitől rögtön úgy érzed, hogy szeretve vagy?", "Ha most azonnal idevarázsolhatnál magad mellé 10 percre, mit csinálnánk?", "Melyik dal juttatja eszedbe rögtön a mi kapcsolatunkat?", "Mi az a tulajdonságom, amit a legjobban csodálsz?", "Milyen volt a tökéletes randink eddig, és miért pont az?", "Mi az, amiben szerinted nagyon hasonlítunk egymásra?", "Mi az, amiben teljesen különbözünk, mégis jól kiegészítjük egymást?", "Melyik pillanatban érezted először, hogy ebből valami komolyabb lehet?", "Mi az a bók, amit tőlem kaptál, és a legjobban esett?", "Milyen becenevet adnál nekem, ha most kellene kitalálnod egy újat?", "Mi az, amit még sosem mondtál el, hogy mennyire tetszik bennem?", "Hogyan írnád le a kapcsolatunkat három szóban?", "Mi az a gesztusom, amitől mindig elmosolyodsz?", "Melyik közös fotónkat szereted a legjobban és miért?", "Mi volt a legviccesebb pillanatunk eddig együtt?", "Ha egyetlen pillanatot újraélhetnél velünk kapcsolatban, melyik lenne az?", "Mi az, amiben mostanában a legtöbbet segítettem vagy támogattalak?", "Milyen illat vagy íz emlékeztet rám?", "Mi a legvonzóbb szokásom szerinted?", "Hogyan tudlak a leggyorsabban megnevettetni, ha rossz kedved van?", "Mi az, amit együtt csinálva sokkal jobban élvezel, mint egyedül?", "Melyik közös beszélgetésünk maradt meg benned a legmélyebben?", "Mi az a kis rituálé, amit jó lenne bevezetni, valahányszor találkozunk?", "Ha egy zombiapokalipszis törne ki most, mi lenne a te feladatod és mi az enyém?", "Melyik film- vagy sorozatpárosra hasonlítunk a legjobban?", "Mi a legfurcsább ételkombináció, amit titokban szeretsz?", "Ha holnap nyernél 500 millió forintot, mi lenne az első három dolog, amire költenél?", "Mi volt gyerekkorod legkínosabb vagy legviccesebb sztorija?", "Ha egy állat lehetnék, mi lennék szerinted, és miért?", "Mi az a teljesen haszontalan szuperképesség, amit szívesen elfogadnál?", "Ki maradna életben tovább egy lakatlan szigeten: te vagy én? Indokold!", "Mi az a dolog, amiben biztosan megvernél bármikor?", "Mi a legrosszabb randiötlet, amit el tudsz képzelni?", "Ha egy hétig testet cserélnénk, mi lenne az első dolog, amit kipróbálnál?", "Melyik dalra kezdesz el azonnal táncolni vagy énekelni, ha meghallod?", "Mi volt a legrosszabb hajvágásod vagy öltözködési korszakod?", "Ha saját éttermet nyitnánk együtt, mi lenne a neve és a fő fogása?", "Mi az a film, amit mindenki imád, de te ki nem állhatsz (vagy fordítva)?", "Ha egy valóságshow-ban indulnánk párként, meddig jutnánk el és min vesznénk össze először?", "Mi a legfurcsább álmod, amire még mindig emlékszel?", "Ha egyetlen ételt ehetnél életed végéig, mi lenne az?", "Mi volt a legbénább kifogás, amit valaha használtál, hogy ne kelljen elmenned valahova?", "Ki a nagyobb drámakirály(nő), ha beteg vagy fáradt?", "Ha időutazhatnál, melyik korszakba néznél be egy hétvégére?", "Mi az a gyerekkori mesefigura, akibe titokban szerelmes voltál?", "Melyik házimunkát utálod a legjobban a világon?", "Ha most azonnal el kellene indulnunk bárhova a világon 10 perc pakolással, hova mennénk?", "Mi a legviccesebb félreértés, ami valaha történt velünk vagy veled?", "Ha írhatnál egy törvényt, amit mindenkinek be kell tartania, mi lenne az?", "Mi az a szó vagy kifejezés, amit túl sokat használsz mostanában?", "Ha egy videójátékban lennénk karakterek, mik lennének a fő erősségeink és gyengeségeink?", "Melyik hírességgel vacsoráznál együtt, ha bárkit választhatnál?", "Mi az a dolog, amit felnőttként is ugyanolyan lelkesedéssel csinálsz, mint 10 évesen?", "Mi az a dolog, amiért ma a leghálásabb vagy?", "Miben változtál a legtöbbet az elmúlt két évben?", "Mi az a félelmed, amiről ritkán beszélsz másoknak?", "Mikor érzed magad igazán nyugodtnak és feltöltődve?", "Mi az a tanács, amit a 15 éves önmagadnak adnál?", "Mi az, amire a legbüszkébb vagy az eddigi életedben?", "Milyen helyzetben érzed magad a legmagabiztosabbnak?", "Mi az, ami mostanában a legtöbb energiádat viszi el?", "Hogyan néz ki számodra egy igazán tökéletes, stresszmentes vasárnap?", "Mi az a tulajdonság, amit a leginkább értékelsz az emberekben?", "Mi az a szokásod, amin szeretnél változtatni a közeljövőben?", "Melyik könyv, film vagy gondolat volt rád a legnagyobb hatással?", "Mi az, amiben szerinted az emberek gyakran félreértenek téged elsőre?", "Mikor érezted utoljára, hogy teljesen kiszakadtál az időből, mert annyira élvezted, amit csinálsz?", "Mi a legfontosabb lecke, amit egy korábbi nehéz helyzetből tanultál?", "Mi az, amitől igazán izgatott leszel, ha rágondolsz a jövővel kapcsolatban?", "Hogyan kezeled a legjobban a stresszt, és hogyan tudok én segíteni benne?", "Mi az az érték vagy elv, amiből sosem engednél?", "Milyen apró napi rutin teszi jobbá a kedvedet még egy nehéz napon is?", "Mi az a dolog, amit szívesen megtanulnál, ha végtelen szabadidőd lenne?", "Melyik érzést szereted a legjobban átélni a mindennapokban?", "Mi volt a legjobb döntés, amit az elmúlt egy évben hoztál?", "Mi az, ami számodra egy igazi otthont jelent (nem csak fizikailag)?", "Mikor érzed úgy, hogy igazán meghallgatnak és megértenek?", "Mi az a célod a következő egy évre, amit mindenképp szeretnél elérni?", "Mi lesz az első dolog, amit csinálunk, amikor legközelebb találkozunk?", "Mi hiányzik a legjobban a másikból olyankor, amikor külön városban vagyunk?", "Melyik helyet szeretnéd megmutatni nekem a saját városodban (Pesten vagy Pécsen), ahol még nem voltunk együtt?", "Mi a legjobb programötleted a következő közös hétvégénkre?", "Milyen közös utazást vagy kirándulást tervezzünk be a következő fél évben?", "Mi az a hétköznapi, teljesen átlagos dolog, amit jó lenne együtt csinálni (pl. közös főzés, bevásárlás)?", "Melyik napszakban hiányzom a legjobban egy átlagos hétköznapon?", "Mi az a közös sport, hobbi vagy új tevékenység, amit kipróbálhatnánk együtt?", "Hogyan tudjuk még jobbá tenni azokat a napokat, amikor csak online tudunk beszélni?", "Milyen filmet vagy sorozatot kezdjünk el közösen nézni estékre?", "Mi az a kaja, amit legközelebb együtt kell megfőznünk vagy kipróbálnunk?", "Melyik évszakot várod a legjobban közös programok szempontjából és miért?", "Mi az a dolog, amit a távkapcsolat miatt jobban értékelsz, mint egyébként tennéd?", "Ha egy teljes hétvégére elszökhetnénk bárhova belföldön, hova mennénk?", "Mi az a kis meglepetés, aminek nagyon örülnél egy random hétköznapon?", "Milyen közös hagyományt találjunk ki minden búcsúzáshoz (hogy könnyebb legyen a következő találkozóig)?", "Mi az az étterem, kávézó vagy kilátó, ahova mindenképp el kell vinnünk egymást?", "Hogyan képzelsz el egy közös reggelt, amikor egyikünknek sem kell sietnie sehova?", "Mi az a bakancslistás élmény, amit mindenképp együtt szeretnél kipipálni?", "Mi az, amit ma a nap végén üzennél nekem, ha csak egyetlen mondatod lenne?"];
 var qa={},START=Math.floor(Date.UTC(2026,10,24)/864e5),qJson="";
@@ -498,6 +521,16 @@ function checkNear(){
 }
 document.getElementById("notifbtn").onclick=function(){
   try{Notification.requestPermission().then(function(){checkNear()})}catch(e){}};
+function renderTurns(){
+  var el=document.getElementById("turns"),L=[];
+  if(!me){el.hidden=true;return}
+  if(c4&&c4.b&&!c4.w&&c4.t)L.push(["🔴 Connect 4",c4.t]);
+  if(bs&&bs.t&&!bs.w){var rdy=bs.ready||{};if(rdy.a&&rdy.b)L.push(["🚢 Torpedó",bs.t])}
+  if(game&&game.cur&&!game.cur.done){var c=game.cur,l=glog(c),last=l[l.length-1];L.push(["💬 Szójáték",(!last||last.t==="guess")?c.d:(c.d==="a"?"b":"a")])}
+  el.hidden=!L.length;
+  document.getElementById("turnlist").innerHTML=L.map(function(x){var mine=x[1]===me;
+    return '<div class="ans" style="display:flex;justify-content:space-between;gap:8px'+(mine?';font-weight:700;color:var(--pink)':'')+'"><span>'+x[0]+'</span><span>'+(mine?"Te jössz!":esc(NAMES[x[1]])+" jön")+'</span></div>'}).join("")}
+setInterval(renderTurns,2000);
 function tgActive(){var g=state.together;return !!(g&&g.s&&!g.w&&Date.now()-g.s<1728e5)}
 function tgSave(){try{localStorage.setItem("rr_state",JSON.stringify(state))}catch(e){}}
 function tgStart(){if(!me)return;var o={s:Date.now(),by:me};state.together=o;tgSave();
@@ -515,7 +548,7 @@ function renderTG(){
   else el.innerHTML="";
   var a=document.getElementById("tgstart");if(a)a.onclick=tgStart;var b=document.getElementById("tgend");if(b)b.onclick=tgEnd;
 }
-var _rm=renderMeters;renderMeters=function(){_rm();renderMood();renderSleep();renderCD();renderTG();checkNear()};
+var _rm=renderMeters;renderMeters=function(){_rm();renderMood();renderSleep();renderCD();renderTG();checkNear();renderTurns();renderSp()};
 setInterval(renderMood,60000);renderMood();renderSleep();renderCD();setInterval(renderCD,20000);
 var WORDS=["Michael Jordan", "LeBron James", "Kobe Bryant", "Stephen Curry", "Shaquille O'Neal", "Mike Tyson", "Muhammad Ali", "Conor McGregor", "Khabib Nurmagomedov", "Usain Bolt", "Michael Phelps", "Roger Federer", "Rafael Nadal", "Novak Djokovic", "Lewis Hamilton", "Max Verstappen", "Michael Schumacher", "Ayrton Senna", "Magnus Carlsen", "Elon Musk", "Steve Jobs", "Bill Gates", "Mark Zuckerberg", "Albert Einstein", "Nikola Tesla", "Isaac Newton", "Leonardo da Vinci", "Napóleon", "Kleopátra", "Julius Caesar", "William Shakespeare", "Michael Jackson", "Freddie Mercury", "Elvis Presley", "Bob Marley", "Tupac", "Eminem", "Snoop Dogg", "Kanye West", "Taylor Swift", "Rihanna", "Beyoncé", "Billie Eilish", "Dua Lipa", "Leonardo DiCaprio", "Brad Pitt", "Johnny Depp", "Tom Cruise", "Dwayne Johnson", "Keanu Reeves", "árnyék", "csapda", "robbanás", "kulcs", "maszk", "tükör", "sziget", "torony", "láng", "füst", "szellem", "sivatag", "vihar", "mágnes", "kártya", "bomba", "tőr", "kalóz", "kincs", "méreg", "sárkány", "szélvész", "farkas", "sakk", "kapu", "hold", "börtön", "szökés", "kém", "hajsza", "bosszú", "titok", "zsákmány", "szakadék", "célkereszt", "párbaj", "labirintus", "villám", "lőszer", "rajtaütés", "sziréna", "álca", "rejtély", "zár", "végjáték", "penge", "bázis", "kísértet", "kód", "hamis", "fegyver", "hős", "gonosztevő", "csata", "túlélés", "tét", "feszültség", "roham", "lázadás", "mélység", "őrszem", "vakmerő", "sötétség", "szikra", "pánik", "visszaszámlálás", "átok", "barlang", "bilincs", "biliárd", "cirkusz", "drón", "dzsungel", "ecset", "egyenlet", "érem", "eskü", "gleccser", "gyémánt", "gyertya", "harang", "híd", "iránytű", "kalapács", "kamera", "kapufa", "kastély", "képernyő", "kilátó", "kocka", "koponya", "kristály", "lakat", "lift", "maraton", "mérleg", "metró", "mikrofon", "mozi", "műhold", "Mátrix", "Titanic", "Batman", "Joker", "Star Wars", "Darth Vader", "Harry Potter", "Voldemort", "Gyűrűk Ura", "Gollam", "Gladiátor", "Terminátor", "Bosszúállók", "Vasember", "Pókember", "Hulk", "Thor", "Amerika Kapitány", "Deadpool", "Rozsomák", "Jurassic Park", "Alien", "Ragadozó", "Ponyvaregény", "Harcosok klubja", "Eredet", "Csillagok között", "Oppenheimer", "Barbie", "Keresztapa", "A sebhelyesarcú", "Nagymenők", "Trónok harca", "Sárkányok háza", "Breaking Bad", "Better Call Saul", "Stranger Things", "Squid Game", "Peaky Blinders", "A nagy pénzrablás", "Sherlock Holmes", "James Bond", "Indiana Jones", "Mission: Impossible", "Halálos iramban", "John Wick", "Rocky", "Rambo", "Die Hard", "Reszkessetek, betörők!", "Másnaposok", "Truman Show", "Wall Street farkasa", "Szárnyas fejvadász", "Dűne", "Avatar", "Vissza a jövőbe", "Szellemirtók", "Men in Black", "A Karib-tenger kalózai", "Jack Sparrow", "Shrek", "Szamár", "Toy Story", "Oroszlánkirály", "Jégvarázs", "Verdák", "Nemo nyomában", "Gru", "Minyonok", "Spongyabob", "Tom és Jerry", "Scooby-Doo", "Simpson család", "South Park", "Family Guy", "Rick és Morty", "Naruto", "Pokémon", "Pikachu", "Dragon Ball", "Forrest Gump", "A remény rabjai", "Halálsoron", "Hetedik", "A bárányok hallgatnak", "Hannibal Lecter", "Ragyogás", "Az", "Sikoly", "Fűrész", "Démonok között", "Walking Dead", "The Last of Us", "Witcher", "Csernobil", "Jóbarátok", "Így jártam anyátokkal", "Agymenők", "The Office", "Kártyavár", "Vikingek", "Narcos", "Fekete tükör", "Nagy Gatsby", "Viharsziget", "Kapj el, ha tudsz", "Kémek hídja", "Ryan közlegény megmentése", "Becstelen brigantyk", "Django elszabadul", "Kill Bill", "Alkonyat", "Az éhezők viadala", "Útvesztő", "A beavatott", "Narnia krónikái", "Hobbit", "Frankenstein", "Drakula", "King Kong", "Godzilla", "Transformers", "Optimus Prime", "Ninja Teknőcök", "Superman", "Wonder Woman", "Flash", "Aquaman", "Öngyilkos osztag", "Harley Quinn", "Venom", "Fekete Párduc", "Doctor Strange", "Hangya", "A galaxis őrzői", "Wall-E", "Fel!", "L'ecsó", "Agymanók", "Coco", "Szörny Rt.", "Kung Fu Panda", "Így neveld a sárkányodat", "Madagaszkár", "Jégkorszak", "Tarzan", "Aladin", "Herkules", "Mulan"],CATN=["Híres emberek","Szavak","Filmek, sorozatok, mesék"],CATR=[[0,50],[50,150],[150,300]];
 var game={},gJson="",gLast=0;
@@ -863,25 +896,26 @@ renderRd();
 // Autóverseny
 var CAR=(function(){
 var $=function(i){return document.getElementById(i)},N=360,W=92,LAPS=7,TAU=Math.PI*2,COL={a:"#2ecc40",b:"#ffd23f"};
-var TR=[["Ovális",1.5,.85,[]],["Tojás",1.45,.9,[[1,.18,0]]],["Bab",1.35,.95,[[2,.16,0],[1,.1,1]]],["Háromszög",1.1,1.1,[[3,.12,.5]]],["Lekerekített négyzet",1.1,1.1,[[4,.06,0]]],["Csillag",1.15,1.15,[[5,.045,0]]],["Hosszú",1.9,.7,[[2,.1,0]]],["Kacsa",1.4,1,[[1,.2,0],[3,.07,0]]],["Hullámos",1.3,1,[[6,.03,0]]],["Kígyó",1.6,.8,[[3,.1,0],[2,.12,1]]],["Pillangó",1.4,1,[[2,.2,0],[4,.04,0]]],["Szív ❤"]];
+var TR=[["Ausztrália",[[-401,-525],[-343,-547],[-282,-562],[-221,-570],[-158,-574],[-96,-575],[-34,-574],[29,-571],[91,-568],[153,-564],[215,-558],[277,-550],[338,-539],[399,-524],[458,-506],[516,-482],[571,-453],[624,-421],[675,-385],[723,-345],[767,-301],[806,-252],[833,-196],[844,-135],[840,-73],[826,-12],[804,46],[772,100],[726,141],[672,172],[616,200],[562,230],[512,268],[472,315],[437,367],[402,419],[364,468],[319,511],[267,545],[212,574],[155,600],[97,621],[37,639],[-24,651],[-86,657],[-149,654],[-210,644],[-270,628],[-329,608],[-386,583],[-442,554],[-495,521],[-545,484],[-592,443],[-635,399],[-675,351],[-711,300],[-740,245],[-762,187],[-778,126],[-787,65],[-790,3],[-785,-60],[-772,-120],[-749,-179],[-719,-233],[-683,-284],[-643,-332],[-601,-377],[-555,-420],[-507,-459],[-456,-495]]],["Kína",[[-172,562],[-108,564],[-43,566],[21,566],[85,566],[150,565],[214,563],[278,561],[343,559],[406,554],[467,535],[511,492],[545,441],[563,380],[558,317],[540,256],[511,200],[500,138],[510,76],[540,20],[588,-22],[643,-55],[693,-96],[728,-149],[743,-211],[738,-275],[717,-336],[681,-389],[634,-433],[582,-470],[525,-500],[464,-521],[402,-537],[338,-549],[275,-558],[211,-565],[147,-572],[83,-577],[18,-580],[-46,-581],[-110,-580],[-175,-578],[-239,-573],[-303,-566],[-366,-556],[-429,-544],[-491,-526],[-544,-491],[-585,-442],[-608,-382],[-611,-318],[-592,-257],[-555,-205],[-510,-159],[-481,-102],[-473,-39],[-482,24],[-510,81],[-556,126],[-610,160],[-654,206],[-683,264],[-693,327],[-684,390],[-654,447],[-610,494],[-554,525],[-493,543],[-429,552],[-365,556],[-300,559],[-236,560]]],["Japán",[[216,336],[280,354],[349,356],[418,353],[486,346],[554,337],[621,325],[688,310],[754,290],[815,260],[868,217],[911,163],[942,102],[955,35],[939,-31],[905,-91],[862,-144],[812,-192],[757,-232],[697,-266],[634,-293],[568,-312],[500,-316],[432,-306],[366,-288],[300,-269],[234,-250],[170,-227],[108,-197],[50,-161],[-5,-119],[-57,-75],[-109,-30],[-162,13],[-215,57],[-268,101],[-322,143],[-377,183],[-432,225],[-488,264],[-550,293],[-618,303],[-686,302],[-754,290],[-818,266],[-868,221],[-900,160],[-918,94],[-923,26],[-911,-42],[-886,-106],[-851,-164],[-804,-214],[-748,-254],[-688,-287],[-624,-311],[-557,-325],[-488,-329],[-420,-325],[-353,-312],[-289,-288],[-229,-254],[-174,-213],[-122,-168],[-76,-118],[-33,-64],[7,-8],[45,49],[78,109],[105,172],[135,233],[166,294]]],["Bahrein",[[-453,479],[-391,491],[-327,494],[-263,494],[-200,491],[-136,488],[-72,484],[-8,483],[56,483],[120,485],[183,487],[247,488],[311,488],[375,486],[438,479],[502,470],[564,457],[625,438],[682,410],[729,366],[759,311],[768,248],[759,186],[726,132],[681,89],[624,62],[561,56],[499,41],[446,6],[411,-45],[386,-100],[388,-161],[408,-220],[445,-272],[471,-330],[472,-393],[452,-451],[414,-501],[360,-534],[300,-553],[237,-551],[174,-541],[113,-520],[55,-494],[-2,-465],[-61,-440],[-123,-425],[-186,-433],[-244,-459],[-300,-488],[-362,-505],[-425,-503],[-489,-494],[-550,-478],[-610,-455],[-664,-421],[-707,-374],[-734,-316],[-743,-253],[-731,-191],[-699,-136],[-652,-93],[-599,-58],[-558,-8],[-536,51],[-533,114],[-551,175],[-582,231],[-596,293],[-588,356],[-559,412],[-512,455]]],["Szaúd-Arábia",[[-489,-141],[-416,-150],[-345,-167],[-275,-186],[-205,-205],[-134,-222],[-62,-232],[11,-233],[83,-223],[153,-204],[223,-183],[293,-163],[364,-147],[436,-140],[508,-150],[577,-173],[644,-202],[709,-234],[776,-263],[847,-281],[919,-274],[988,-250],[1051,-215],[1108,-169],[1138,-106],[1146,-35],[1124,33],[1085,94],[1036,147],[974,186],[902,190],[832,172],[763,147],[695,122],[625,102],[553,94],[481,105],[412,129],[346,159],[280,189],[212,216],[141,233],[69,233],[-2,217],[-72,195],[-140,170],[-210,150],[-282,141],[-354,149],[-424,172],[-491,200],[-557,231],[-624,259],[-694,279],[-767,283],[-839,277],[-911,264],[-981,245],[-1049,218],[-1110,179],[-1150,119],[-1167,48],[-1157,-23],[-1115,-82],[-1055,-123],[-989,-154],[-920,-176],[-848,-189],[-776,-185],[-704,-171],[-633,-155],[-561,-143]]],["USA",[[-437,-478],[-375,-492],[-312,-501],[-248,-508],[-184,-512],[-121,-515],[-57,-517],[7,-518],[71,-518],[135,-517],[199,-515],[262,-512],[326,-506],[389,-498],[452,-486],[514,-469],[574,-447],[632,-421],[687,-389],[732,-344],[761,-287],[773,-225],[764,-162],[738,-104],[695,-57],[638,-27],[578,-8],[528,29],[490,75],[475,136],[483,199],[511,256],[548,307],[569,367],[565,430],[538,488],[493,532],[435,559],[374,576],[311,588],[248,596],[184,599],[120,599],[56,594],[-7,585],[-69,571],[-130,552],[-185,521],[-230,475],[-263,420],[-306,374],[-362,344],[-425,336],[-488,347],[-551,352],[-613,338],[-672,313],[-724,277],[-763,227],[-785,167],[-795,104],[-799,40],[-799,-24],[-796,-88],[-789,-151],[-775,-213],[-749,-272],[-712,-323],[-665,-367],[-613,-404],[-557,-435],[-498,-459]]],["Kanada",[[-488,-195],[-437,-203],[-386,-211],[-335,-217],[-284,-224],[-233,-229],[-182,-234],[-131,-237],[-79,-238],[-28,-238],[24,-232],[74,-222],[123,-207],[172,-190],[221,-174],[271,-166],[323,-171],[371,-189],[414,-216],[458,-244],[506,-260],[558,-262],[608,-252],[656,-234],[703,-213],[741,-180],[771,-142],[790,-96],[788,-47],[778,1],[752,44],[715,79],[671,105],[623,123],[578,147],[534,175],[491,202],[444,224],[394,234],[342,231],[292,221],[242,208],[192,197],[141,192],[89,194],[39,203],[-11,215],[-61,229],[-110,243],[-160,257],[-210,268],[-261,275],[-312,278],[-364,278],[-415,275],[-467,270],[-517,261],[-567,249],[-616,233],[-663,212],[-707,185],[-747,153],[-778,112],[-796,64],[-798,13],[-789,-38],[-767,-84],[-732,-122],[-688,-149],[-640,-166],[-590,-177],[-539,-186]]],["Monaco",[[-493,145],[-487,106],[-479,68],[-460,35],[-437,4],[-409,-23],[-376,-44],[-341,-62],[-307,-82],[-274,-104],[-243,-128],[-212,-153],[-183,-179],[-155,-206],[-129,-236],[-105,-268],[-82,-300],[-59,-332],[-35,-363],[-9,-393],[20,-419],[52,-442],[86,-461],[124,-474],[162,-481],[202,-479],[240,-471],[277,-456],[310,-434],[338,-408],[363,-377],[381,-342],[392,-304],[397,-265],[394,-225],[385,-187],[371,-150],[361,-112],[357,-73],[359,-34],[369,5],[380,42],[387,81],[387,120],[381,159],[368,196],[348,230],[323,261],[292,286],[258,304],[220,316],[181,323],[142,325],[103,330],[64,339],[27,350],[-11,363],[-48,376],[-85,388],[-124,397],[-163,401],[-202,400],[-241,394],[-279,384],[-317,372],[-354,359],[-389,341],[-420,317],[-446,288],[-469,257],[-482,221],[-490,183]]],["Spanyolország",[[-432,-248],[-377,-256],[-322,-259],[-267,-259],[-212,-258],[-157,-255],[-102,-252],[-47,-250],[8,-249],[63,-249],[118,-250],[173,-252],[228,-253],[283,-254],[338,-254],[393,-252],[447,-246],[502,-239],[556,-229],[609,-214],[660,-193],[706,-163],[745,-125],[778,-81],[797,-30],[801,22],[785,73],[755,119],[718,160],[674,192],[621,208],[566,209],[512,201],[459,188],[407,170],[360,141],[326,98],[292,55],[246,27],[193,17],[140,26],[88,45],[41,72],[8,114],[-16,163],[-29,216],[-53,264],[-93,301],[-142,326],[-194,344],[-248,349],[-302,338],[-348,309],[-386,269],[-430,238],[-484,227],[-538,235],[-590,251],[-644,242],[-690,213],[-724,170],[-753,123],[-775,73],[-793,21],[-792,-34],[-772,-85],[-736,-126],[-689,-155],[-640,-180],[-590,-202],[-538,-220],[-485,-236]]],["Ausztria",[[-605,263],[-610,213],[-605,162],[-590,114],[-566,69],[-534,29],[-498,-7],[-466,-47],[-438,-89],[-410,-132],[-383,-175],[-353,-217],[-322,-257],[-290,-297],[-258,-336],[-226,-376],[-194,-416],[-162,-455],[-129,-494],[-95,-533],[-61,-571],[-22,-603],[22,-629],[70,-644],[121,-649],[171,-644],[220,-628],[264,-603],[304,-571],[336,-531],[359,-486],[373,-437],[377,-386],[371,-336],[358,-286],[352,-236],[356,-185],[370,-136],[394,-91],[425,-51],[461,-15],[493,24],[519,69],[536,116],[546,166],[547,217],[538,267],[518,315],[490,357],[452,391],[409,418],[362,437],[312,448],[261,454],[211,457],[160,460],[109,462],[58,463],[7,464],[-44,466],[-95,468],[-146,470],[-197,472],[-248,474],[-299,475],[-350,474],[-400,468],[-449,452],[-494,428],[-532,395],[-565,357],[-589,312]]]];
 var mode="t",P,car,oth,running=false,cd=0,t0=0,rid=0,doneId=0,room=null,joy={x:0,y:0},keys={},bests={},last=0,sendT=0,pollT=0,raf=0,chg=0,off=0,offT=0;
 var cv=$("car-cv"),cx=cv.getContext("2d"),sel=$("car-trk"),st=$("car-stick"),kn=$("car-knob");
 TR.forEach(function(t,i){var o=document.createElement("option");o.value=i;o.textContent=(i+1)+". "+t[0];sel.appendChild(o)});
-function mk(i){var Q=[],t=TR[i],j,a,r,s,c;
- for(j=0;j<N;j++){a=TAU*(j+N/4)/N;
-  if(i==11){s=Math.sin(a);c=Math.cos(a);Q.push([.6*28*16*s*s*s+.4*350*s,-.6*28*(13*c-5*Math.cos(2*a)-2*Math.cos(3*a)-Math.cos(4*a))-.4*350*c])}
-  else{r=1;t[3].forEach(function(q){r+=q[1]*Math.cos(q[0]*a+q[2])});Q.push([400*t[1]*r*Math.cos(a),400*t[2]*r*Math.sin(a)])}}
- if(i==11)Q=Q.map(function(_,j){var x=0,y=0,k,p;for(k=-30;k<=30;k++){p=Q[(j+k+N)%N];x+=p[0];y+=p[1]}return[x/61,y/61]});
- return Q}
+function mk(i){var D=TR[i][1],n=D.length,Q=[],L=[0],k,j,s,a,b,c,d,t,t2,t3,f,m=n*10,R=[],tot;
+ for(k=0;k<n;k++){a=D[(k+n-1)%n];b=D[k];c=D[(k+1)%n];d=D[(k+2)%n];
+  for(s=0;s<10;s++){t=s/10;t2=t*t;t3=t2*t;Q.push([.5*(2*b[0]+(c[0]-a[0])*t+(2*a[0]-5*b[0]+4*c[0]-d[0])*t2+(3*b[0]-a[0]-3*c[0]+d[0])*t3),.5*(2*b[1]+(c[1]-a[1])*t+(2*a[1]-5*b[1]+4*c[1]-d[1])*t2+(3*b[1]-a[1]-3*c[1]+d[1])*t3)])}}
+ for(k=0;k<m;k++){a=Q[k];b=Q[(k+1)%m];L.push(L[k]+Math.hypot(b[0]-a[0],b[1]-a[1]))}
+ tot=L[m];j=0;
+ for(k=0;k<N;k++){t=tot*k/N;while(L[j+1]<t)j++;a=Q[j];b=Q[(j+1)%m];f=(t-L[j])/Math.max(1e-9,L[j+1]-L[j]);R.push([a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f])}
+ return R}
 function fmt(ms){return Math.floor(ms/60000)+":"+("0"+(ms/1000%60).toFixed(1)).slice(-4)}
 function other(){return me=="a"?"b":"a"}
 function hd(i){var p=P[(i+2)%N],u=P[(i+N-2)%N];return Math.atan2(p[1]-u[1],p[0]-u[0])}
 function clk(){var t1=Date.now();offT=t1;remote("PUT","race/clk/"+me,{".sv":"timestamp"}).then(function(r){return r.json()}).then(function(ts){if(typeof ts=="number")off=ts-(t1+Date.now())/2}).catch(function(){})}
 function saveBest(lt){var tk=sel.value;bests[tk]=bests[tk]||{};if(!bests[tk][me]||lt<bests[tk][me])bests[tk][me]=lt;
- if(!base)return;fetch(base+"/race/best/"+tk+"/"+me+".json").then(function(r){return r.json()}).then(function(d){if(!d||lt<d)remote("PUT","race/best/"+tk+"/"+me,lt)}).catch(function(){})}
+ if(!base)return;fetch(base+"/race/best2/"+tk+"/"+me+".json").then(function(r){return r.json()}).then(function(d){if(!d||lt<d)remote("PUT","race/best2/"+tk+"/"+me,lt)}).catch(function(){})}
 function begin(m,go){
  mode=m;P=mk(+sel.value);var d=hd(0),o=m=="r"?(me=="a"?-17:17):0;
- car={x:P[0][0]-Math.sin(d)*o,y:P[0][1]+Math.cos(d)*o,a:d,v:0,idx:0,laps:0,max:0,half:0,off:0,best:0,last:0,fin:0};
+ car={x:P[0][0]-Math.sin(d)*o,y:P[0][1]+Math.cos(d)*o,a:d,v:0,idx:0,laps:0,max:0,half:0,off:0,sp:0,cool:0,sd:0,best:0,last:0,fin:0};
  oth=null;cd=go||Date.now()+3500;t0=cd;car.lapT=cd;
  $("car-menu").hidden=true;$("car-play").hidden=false;$("car-res").hidden=true;size();running=true;last=Date.now();
  cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
@@ -892,15 +926,20 @@ function lapDone(now){
 function step(dt,now){
  var jx=joy.x,jy=joy.y,kx=(keys.arrowright||keys.d?1:0)-(keys.arrowleft||keys.a?1:0),ky=(keys.arrowdown||keys.s?1:0)-(keys.arrowup||keys.w?1:0);
  if(kx||ky){var kl=Math.hypot(kx,ky);jx=kx/kl;jy=ky/kl}
- var m=Math.min(1,Math.hypot(jx,jy));if(now<cd||car.fin)m=0;
+ var m=Math.min(1,Math.hypot(jx,jy));if(now<cd||car.fin||car.sp>0)m=0;
  if(m>.12){var df=Math.atan2(Math.sin(Math.atan2(jy,jx)-car.a),Math.cos(Math.atan2(jy,jx)-car.a)),mx=3.4*dt;car.a+=Math.max(-mx,Math.min(mx,df))}
  var vm=(car.off?110:260)*Math.min(1,m*1.25);
  car.v+=(vm-car.v)*Math.min(1,dt*(vm>car.v?2.2:3));
- car.x+=Math.cos(car.a)*car.v*dt;car.y+=Math.sin(car.a)*car.v*dt;
+ if(car.sp>0){car.sp-=dt;car.a+=11*dt;car.v*=Math.max(0,1-1.8*dt);car.x+=Math.cos(car.sd)*car.v*dt;car.y+=Math.sin(car.sd)*car.v*dt;if(car.sp<=0)car.a=car.sd}
+ else{car.x+=Math.cos(car.a)*car.v*dt;car.y+=Math.sin(car.a)*car.v*dt}
+ if(car.cool>0)car.cool-=dt;
  var bi=car.idx,bd=1e9,k,j,dx,dy,d2;
  for(k=-14;k<=14;k++){j=(car.idx+k+N)%N;dx=P[j][0]-car.x;dy=P[j][1]-car.y;d2=dx*dx+dy*dy;if(d2<bd){bd=d2;bi=j}}
- car.off=bd>W*W/4?1:0;
- if(bd>260*260){car.x=P[bi][0];car.y=P[bi][1];car.a=hd(bi);car.v=0}
+ car.off=0;
+ if(bd>260*260){car.x=P[bi][0];car.y=P[bi][1];car.a=hd(bi);car.v=0;car.sp=0;bd=0}
+ var WL=W/2-8;
+ if(bd>WL*WL){var dd=Math.sqrt(bd),ux=(car.x-P[bi][0])/dd,uy=(car.y-P[bi][1])/dd;car.x=P[bi][0]+ux*WL;car.y=P[bi][1]+uy*WL;
+  if(car.sp<=0&&car.cool<=0&&car.v>40){car.sp=.8;car.cool=1.3;car.sd=hd(bi);car.v=Math.min(car.v,160)*.55}else if(car.v>60)car.v*=.9}
  var pi=car.idx;car.idx=bi;
  if(pi>N*.75&&bi<N*.25){if(car.half){car.half=0;car.laps++;lapDone(now)}}
  else if(pi<N*.25&&bi>N*.75){car.laps--;car.half=1}
@@ -920,7 +959,8 @@ function draw(now){
  cx.fillStyle="#3b8a3b";cx.fillRect(0,0,w,h);
  cx.save();cx.translate(w/2,h/2);cx.scale(z,z);cx.translate(-car.x,-car.y);
  cx.beginPath();cx.moveTo(P[0][0],P[0][1]);for(i=1;i<N;i++)cx.lineTo(P[i][0],P[i][1]);cx.closePath();
- cx.lineJoin="round";cx.strokeStyle="#fff";cx.lineWidth=W+10;cx.stroke();
+ cx.lineJoin="round";cx.strokeStyle="#e9e9e9";cx.lineWidth=W+16;cx.stroke();
+ cx.strokeStyle="#d63031";cx.setLineDash([26,26]);cx.stroke();cx.setLineDash([]);
  cx.strokeStyle="#4b4f57";cx.lineWidth=W;cx.stroke();
  cx.strokeStyle="rgba(255,255,255,.5)";cx.lineWidth=3;cx.setLineDash([18,22]);cx.stroke();cx.setLineDash([]);
  d=hd(0);cx.save();cx.translate(P[0][0],P[0][1]);cx.rotate(d);cx.fillStyle="#fff";cx.fillRect(-5,-W/2,10,W);cx.fillStyle="#000";
@@ -954,7 +994,7 @@ function refresh(){var i=sel.value,b=bests[i]||{},h="";
   else if(room&&room.id!==doneId){var rd=room.ready||{};h+=["a","b"].map(function(k){return NAMES[k]+(typeof rd[k]=="number"?" ✅ kész":" ⏳ nem kész")}).join(" · ")}
   else h+="Nyomd meg a gombot, ha készen állsz – amikor ketten készen vagytok, indul a verseny."}
  $("car-info").innerHTML=h}
-function fetchBests(){if(!base)return;var i=sel.value;fetch(base+"/race/best/"+i+".json").then(function(r){return r.json()}).then(function(d){bests[i]=d||{};refresh()}).catch(function(){})}
+function fetchBests(){if(!base)return;var i=sel.value;fetch(base+"/race/best2/"+i+".json").then(function(r){return r.json()}).then(function(d){bests[i]=d||{};refresh()}).catch(function(){})}
 function poll(){
  if(!base||$("car-menu").offsetParent===null)return;
  if(!off||Date.now()-offT>10000)clk();
@@ -981,6 +1021,75 @@ $("car-exit").onclick=function(){running=false;cancelAnimationFrame(raf);jend();
  if(mode=="r"&&base)remote("DELETE","race/p/"+me).catch(function(){});refresh();fetchBests()};
 return{open:function(){if(!running){refresh();fetchBests();poll()}}}
 })();
+var spd={},spJson="",spLast={},spMsg="";
+function spRedirect(){return location.origin+location.pathname.replace(/index\.html$/,"")}
+function spQs(o){return Object.keys(o).map(function(k){return k+"="+encodeURIComponent(o[k])}).join("&")}
+function spB64(buf){return btoa(String.fromCharCode.apply(null,new Uint8Array(buf))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
+function spCid(){return (spd.cfg&&spd.cfg.cid)||localStorage.getItem("sp_cid")||""}
+function spHasTok(){try{return !!localStorage.getItem("sp_tok_"+me)}catch(e){return false}}
+function spConnect(){
+  var cid=spCid();if(!cid||!me)return;
+  var v=spB64(crypto.getRandomValues(new Uint8Array(48)));
+  crypto.subtle.digest("SHA-256",new TextEncoder().encode(v)).then(function(h){
+    localStorage.setItem("sp_v",v);localStorage.setItem("sp_who",me);localStorage.setItem("sp_cid",cid);
+    location.href="https://accounts.spotify.com/authorize?"+spQs({client_id:cid,response_type:"code",redirect_uri:spRedirect(),code_challenge_method:"S256",code_challenge:spB64(h),scope:"user-read-currently-playing"})})}
+(function(){
+  var p=new URLSearchParams(location.search),code=p.get("code"),er=p.get("error");
+  if(!code&&!er)return;
+  try{history.replaceState(null,"",spRedirect())}catch(e){}
+  if(er){spMsg="A Spotify-kapcsolat megszakadt ("+er+").";return}
+  var v=localStorage.getItem("sp_v"),cid=localStorage.getItem("sp_cid"),who=localStorage.getItem("sp_who");
+  if(!v||!cid||!who)return;
+  fetch("https://accounts.spotify.com/api/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},
+    body:spQs({client_id:cid,grant_type:"authorization_code",code:code,redirect_uri:spRedirect(),code_verifier:v})})
+  .then(function(r){return r.json()}).then(function(d){
+    if(!d.access_token)throw 0;
+    localStorage.setItem("sp_tok_"+who,JSON.stringify({a:d.access_token,r:d.refresh_token,exp:Date.now()+d.expires_in*1000}));
+    spMsg="Összekapcsolva ✓";renderSp()}).catch(function(){spMsg="Nem sikerült az összekapcsolás, próbáld újra.";renderSp()});
+})();
+function spToken(){
+  var raw=localStorage.getItem("sp_tok_"+me);if(!raw)return Promise.reject(0);
+  var t=JSON.parse(raw);if(Date.now()<t.exp-30000)return Promise.resolve(t.a);
+  return fetch("https://accounts.spotify.com/api/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},
+    body:spQs({grant_type:"refresh_token",refresh_token:t.r,client_id:spCid()})}).then(function(r){return r.json()}).then(function(d){
+    if(!d.access_token)throw 0;t.a=d.access_token;t.exp=Date.now()+d.expires_in*1000;if(d.refresh_token)t.r=d.refresh_token;
+    localStorage.setItem("sp_tok_"+me,JSON.stringify(t));return t.a})}
+function spPlay(){
+  if(!me||!base||document.hidden||!spHasTok())return;
+  spToken().then(function(tk){return fetch("https://api.spotify.com/v1/me/player/currently-playing",{headers:{Authorization:"Bearer "+tk}})})
+  .then(function(r){if(r.status===204)return null;if(!r.ok)throw r.status;return r.json()}).then(function(d){
+    var o=d&&d.item?{t:d.item.name,a:(d.item.artists||[]).map(function(x){return x.name}).join(", ")||(d.item.show&&d.item.show.name)||"",p:!!d.is_playing}:{t:"",a:"",p:false};
+    var key=o.t+"|"+o.p,now=Date.now();
+    if(key!==spLast.key||now-spLast.ts>30000){spLast={key:key,ts:now};o.ts=now;remote("PUT","sp/"+me,o).catch(function(){})}
+    if(spMsg){spMsg="";renderSp()}
+  }).catch(function(e){if(e===401||e===403||e===0){spMsg="A Spotify nem engedi a lekérdezést (jogosultság). Ellenőrizd, hogy hozzá vagy-e adva az app felhasználóihoz.";renderSp()}})}
+function spData(){
+  if(!base)return;
+  fetch(base+"/sp.json").then(function(r){return r.json()}).then(function(d){
+    if(Date.now()-lastWrite<1000)return;d=d||{};var j=JSON.stringify(d);if(j===spJson)return;spJson=j;spd=d;renderSp()}).catch(function(){})}
+function renderSp(){
+  var L=document.getElementById("splist"),C=document.getElementById("spctl"),now=Date.now(),h="";
+  ["a","b"].forEach(function(k){var o=spd[k],t;
+    if(!o||!o.ts)t="még nem kapcsolódott";
+    else if(!o.t)t="most nem hallgat semmit";
+    else t=(o.p&&now-o.ts<120000?"▶ ":"⏸ ")+esc(o.t)+(o.a?" – "+esc(o.a):"")+" · "+ago(o.ts);
+    h+='<div class="ans"><b>'+esc(NAMES[k])+'</b>'+t+'</div>'});
+  L.innerHTML=h;
+  var c="";
+  if(!spCid())c='<button class="chip" id="spopen">⚙ Spotify beállítása</button>';
+  else if(me&&!spHasTok())c='<button class="save" id="spgo">🔗 Összekapcsolom a Spotifyt</button>';
+  else if(me)c='<span class="hd">Összekapcsolva ✓ · </span><button class="chip" id="spoff">Leválasztás</button>';
+  C.innerHTML=c;document.getElementById("spmsg").textContent=spMsg;
+  var a=document.getElementById("spopen");if(a)a.onclick=function(){document.getElementById("spsetup").hidden=false};
+  var b=document.getElementById("spgo");if(b)b.onclick=spConnect;
+  var d=document.getElementById("spoff");if(d)d.onclick=function(){try{localStorage.removeItem("sp_tok_"+me)}catch(e){}renderSp()};
+}
+document.getElementById("spredir").textContent=spRedirect();
+document.getElementById("spsave").onclick=function(){var v=document.getElementById("spcid").value.trim();if(!v)return;
+  spd.cfg={cid:v};try{localStorage.setItem("sp_cid",v)}catch(e){}
+  if(base){lastWrite=Date.now();remote("PUT","sp/cfg",{cid:v}).catch(function(){})}
+  document.getElementById("spsetup").hidden=true;renderSp()};
+setInterval(spPlay,10000);setInterval(renderSp,20000);renderSp();
 // Közös szinkron (Firebase Realtime Database, REST)
 var CANDS=["https://retekreka-e08e5-default-rtdb.europe-west1.firebasedatabase.app"];
 var note=document.getElementById("syncnote"),lastJson="";
@@ -1043,7 +1152,7 @@ function findBase(i){
   var ac=new AbortController(),to=setTimeout(function(){ac.abort()},7000);
   fetch(CANDS[i]+"/state.json",{signal:ac.signal}).then(function(r){
     clearTimeout(to);if(!r.ok)throw 0;return r.json()
-  }).then(function(){base=CANDS[i];cleanup();pull();setInterval(pull,2000);pollQa();setInterval(pollQa,3000);pollGame();setInterval(pollGame,2000);pollF();setInterval(pollF,4000);pollEv();setInterval(pollEv,3000);pollRd();setInterval(pollRd,3000);pollCook();setInterval(pollCook,3000);pollC4();setInterval(pollC4,1500);pollBS();setInterval(pollBS,1500)}).catch(function(){clearTimeout(to);findBase(i+1)});
+  }).then(function(){base=CANDS[i];spData();setInterval(spData,5000);cleanup();pull();setInterval(pull,2000);pollQa();setInterval(pollQa,3000);pollGame();setInterval(pollGame,2000);pollF();setInterval(pollF,4000);pollEv();setInterval(pollEv,3000);pollRd();setInterval(pollRd,3000);pollCook();setInterval(pollCook,3000);pollC4();setInterval(pollC4,1500);pollBS();setInterval(pollBS,1500)}).catch(function(){clearTimeout(to);findBase(i+1)});
 }
 findBase(0);
 })();
