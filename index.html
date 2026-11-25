@@ -63,7 +63,7 @@ body{transition:background .6s}
 .rjg>div{aspect-ratio:1;position:relative;overflow:hidden;min-width:0}
 .rl{background:var(--bg);cursor:pointer}.rl.wd{background:rgba(255,210,63,.4)}.rl.sel{background:var(--pink)}.rl.bad{background:#ff9b9b}
 .rv{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.25rem}
-.rv.pa{color:#d6336c}.rv.pb{color:#2d5fd1}.rl.sel .rv{color:#fff}
+.rv.pa{color:#1f9d3a}.rv.pb{color:#e0a800;text-shadow:0 0 1px rgba(0,0,0,.35)}.rl.sel .rv{color:#fff}
 .rb{background:#6b5560}.rk{background:var(--soft);cursor:pointer}
 .rt{position:absolute;left:0;right:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:.5rem;line-height:1.05;color:var(--tx);overflow:hidden;font-weight:600;hyphens:auto}
 .rt.o{top:0;bottom:0}.rt.a2{top:0;height:50%;border-bottom:1px solid var(--line)}.rt.b2{bottom:0;height:50%}
@@ -71,6 +71,7 @@ body{transition:background .6s}
 .rt i.r{right:0;top:50%;transform:translateY(-50%)}.rt i.d{bottom:0;left:50%;transform:translateX(-50%)}
 #rjin{position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;border:0;padding:0;font-size:16px}
 #g-x .card{padding:10px}
+.wb{display:block;width:100%;text-align:left;border:2px solid var(--soft);background:var(--bg);color:var(--tx);border-radius:16px;padding:14px;margin:8px 0;font:inherit;font-size:1rem;cursor:pointer}.wb.sel{background:var(--pink);border-color:var(--pink);color:#fff}.wbd{display:inline-block;margin:6px 6px 0 0;padding:2px 8px;border-radius:999px;font-size:.75rem;color:#000}
 </style>
 </head>
 <body>
@@ -132,7 +133,6 @@ body{transition:background .6s}
   <div style="display:flex;gap:8px;margin-bottom:8px"><button class="save" id="sbed" style="flex:1">😴 Megyek aludni</button><button class="save" id="swake" style="flex:1">☀️ Felkeltem</button></div>
   <div style="display:flex;gap:8px;align-items:center;margin:8px 0"><label for="wt" style="font-weight:600">⏰ Ekkor kell kelnem:</label><input type="time" id="wt" style="flex:1;border:2px solid var(--soft);border-radius:12px;padding:8px;font:inherit;background:var(--bg);color:var(--tx)"></div>
   <div id="snow"></div>
-  <div class="note">Amíg alszol, a hiányzol-százalék nem csökken.</div>
 </section>
 
 <section class="card">
@@ -160,6 +160,8 @@ body{transition:background .6s}
 </section>
 </div>
 <div id="tab-q" hidden>
+  <div class="who" id="qsub"><button class="pill sel" data-q="d">💬 Napi kérdés</button><button class="pill" data-q="w">🤔 Inkább…? Vicces</button><button class="pill" data-q="r">🔥 Inkább…? Romantikus</button></div>
+  <div id="q-d">
   <section class="card">
     <h2>A mai kérdés</h2>
     <div class="qtext" id="qtext"></div>
@@ -170,6 +172,15 @@ body{transition:background .6s}
     <h2>Korábbi válaszaink</h2>
     <div id="qhist"></div>
   </section>
+  </div>
+  <div id="q-w" hidden>
+  <section class="card">
+    <h2 id="wtitle"></h2>
+    <div class="qtext">Melyiket választanád?</div>
+    <div id="wbox"></div>
+    <div class="note" id="wnote"></div>
+  </section>
+  </div>
 </div>
 <div id="tab-m" hidden>
   <section class="card">
@@ -276,6 +287,14 @@ body{transition:background .6s}
     <input id="rdtxt" autocomplete="off" placeholder="Írj be egy randiötletet (titok marad)…">
     <button class="save" id="rdadd">Hozzáadás</button>
     <div id="rdlist" style="margin-top:10px"></div>
+  </section>
+  <section class="card">
+    <h2>🥾 Bakancslista</h2>
+    <div class="stat" style="margin-top:0">Helyek és élmények, amiket mindenképp át akarunk élni együtt.</div>
+    <div class="chips" id="blkind"></div>
+    <input id="bltxt" class="tin" style="width:100%;margin-bottom:8px" autocomplete="off" placeholder="Pl. csillagnézés a Mecsekben, hőlégballon…">
+    <button class="save" id="bladd">Hozzáadás a listához</button>
+    <div id="bllist" style="margin-top:10px"></div>
   </section>
 </div>
 </main>
@@ -1162,7 +1181,7 @@ function renderRJ(){
   var done=rjDone(),bn=done?'🎉 Kész! Megfejtettétek a rejtvényt!':sw?(sw.dir==="r"?"➡ ":"⬇ ")+esc(sw.clue):"Koppints egy mezőre!";
   box.innerHTML='<div class="ans rjbn" style="text-align:center;font-weight:700">'+bn+'</div><div class="rjg" id="rjg" style="grid-template-columns:repeat('+W+',1fr)">'+h+'</div>'+
     '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:10px"><button class="chip" id="rjchk">✔ Ellenőrzés</button><button class="chip" id="rjhint">💡 Betű felfedése</button><button class="'+(done?"save":"chip")+'" id="rjnext" '+(done?'style="width:auto;padding:8px 16px"':"")+'>'+(done?"Következő rejtvény ➡":"⏭ Másik rejtvény")+'</button></div>';
-  rjE("rjnote").textContent=(pid+1)+". rejtvény / "+RJP.length+" · Filius = rózsaszín, Réka = kék betűk";
+  rjE("rjnote").textContent=(pid+1)+". rejtvény / "+RJP.length+" · Filius = zöld, Réka = sárga betűk";
   rjE("rjg").onclick=function(ev){var t=ev.target.closest&&ev.target.closest("[data-i]");if(!t)return;var k=+t.dataset.i;
     if(rjP.c[k]){var cl=rjP.c[k],j=0;if(cl.length>1){var r=t.getBoundingClientRect();j=ev.clientY-r.top>r.height/2?1:0}
       var d=cl[j][1],w=rjWords[rjCw[d==="r"?k+1:k+W][d]];if(!w)return;rjSel=w.cells[0];rjDir=w.dir}
@@ -1188,6 +1207,63 @@ function pollRJ(){
     if(Date.now()-rjLast<1500)return;d=d||{};var j=JSON.stringify(d);if(j===rjJson)return;rjJson=j;rj=d;
     if(!rjE("g-x").hidden&&!document.hidden)renderRJ()}).catch(function(){})}
 
+var bl={},blJson="",blLast=0,blKind="📍",BLK=[["📍","Hely"],["✨","Élmény"],["🍽","Kaja"],["✈️","Utazás"]];
+function blDraw(){var c=document.getElementById("blkind");
+  c.innerHTML=BLK.map(function(k){return '<button type="button" class="chip'+(k[0]===blKind?" sel":"")+'" data-k="'+k[0]+'">'+k[0]+" "+k[1]+'</button>'}).join("");
+  c.querySelectorAll(".chip").forEach(function(b){b.onclick=function(){blKind=b.dataset.k;blDraw()}})}
+function renderBL(){
+  var L=Object.keys(bl).map(function(id){return {id:id,e:bl[id]}}).filter(function(x){return x.e&&x.e.txt}),
+    pend=L.filter(function(x){return !x.e.done}).sort(function(a,b){return b.e.ts-a.e.ts}),
+    done=L.filter(function(x){return x.e.done}).sort(function(a,b){return b.e.done-a.e.done}),h="";
+  function item(x,d){var e=x.e;return '<div class="ans"'+(d?' style="opacity:.75"':'')+'><b>'+esc(e.k||"📍")+" · "+esc(NAMES[e.by]||"")+" ötlete"+(d?" · ✅ "+dayLabel(e.done):"")+'</b>'+esc(e.txt)+
+    '<br><button class="chip" data-bd="'+x.id+'">'+(d?"↩ Mégsem volt meg":"✅ Megcsináltuk!")+'</button> <button class="chip" data-bx="'+x.id+'">🗑</button></div>'}
+  h+=pend.length?pend.map(function(x){return item(x,false)}).join(""):'<div class="stat">Még üres a lista, írj be valamit!</div>';
+  if(done.length)h+='<div class="hq">✅ Már átéltük ('+done.length+')</div>'+done.map(function(x){return item(x,true)}).join("");
+  document.getElementById("bllist").innerHTML=h}
+document.getElementById("bllist").onclick=function(ev){var d=ev.target.dataset||{};
+  if(d.bd){var e=bl[d.bd];if(!e)return;blLast=Date.now();
+    if(e.done){delete e.done;remote("DELETE","bl/"+d.bd+"/done").catch(function(){})}
+    else{e.done=Date.now();remote("PUT","bl/"+d.bd+"/done",e.done).catch(function(){})}renderBL()}
+  else if(d.bx){if(!confirm("Biztosan törlöd a listáról?"))return;delete bl[d.bx];blLast=Date.now();remote("DELETE","bl/"+d.bx).catch(function(){});renderBL()}};
+document.getElementById("bladd").onclick=function(){var i=document.getElementById("bltxt"),t=i.value.trim();if(!me||!t)return;
+  var id=Date.now()+"_"+me,e={by:me,txt:t,k:blKind,ts:Date.now()};bl[id]=e;blLast=Date.now();
+  if(base)remote("PUT","bl/"+id,e).catch(function(){});i.value="";renderBL()};
+function pollBL(){
+  if(!base)return;
+  fetch(base+"/bl.json").then(function(r){return r.json()}).then(function(d){
+    if(Date.now()-blLast<1500)return;d=d||{};var j=JSON.stringify(d);if(j===blJson)return;blJson=j;bl=d;renderBL()}).catch(function(){})}
+blDraw();renderBL();
+// Inkább…? (vicces + romantikus)
+var WQ={w:["mindig suttogva beszélj|mindig kiabálva beszélj", "egy évig csak pizzát egyél|egy évig soha ne egyél pizzát és tésztát", "tudj repülni, de csak egy méter magasan|legyél láthatatlan, de csak amikor senki sem néz", "tudd, hogyan fogsz meghalni|tudd, mikor fogsz meghalni", "egy évig telefon nélkül élj|egy évig zene nélkül élj", "mindig rajzfilmfigura hangján beszélj|mindig robot hangján nevess", "100 évig élj, de egyedül|50 évig élj a szeretteid körében", "mindenki olvashassa a keresési előzményeidet|mindenki olvashassa egy napig az üzeneteidet", "egy hónapig csak hideg vízzel zuhanyozz|egy hónapig napi 5 órát aludj", "egy lakatlan szigeten ragadj a legidegesítőbb ismerősöddel|egyedül ragadj egy szigeten", "örökre havazzon a nyaralásodon|örökre 40 fok legyen a nyaralásodon", "kutya méretű dinoszaurusz legyen a házi kedvenced|egy beszélő, de nagyon morcos macskád legyen", "minden mondatod rímeljen|minden mondatod végén tapsolj", "híres légy, de mindenki utáljon|ismeretlen légy, de mindenki szeressen, akit ismersz", "egy hétig ne aludj|egy hétig ne beszélj", "mindig 10 perccel késsél|mindig 30 perccel korábban érkezz", "emlékezz minden álmodra|soha többé ne álmodj", "egyszer a múltba utazz|egyszer a jövőbe utazz", "egy gombbal megállíthasd az időt|visszatekerhess 10 percet", "hallj mindent egy kilométeren belül|láss a sötétben", "örökre lemondj a csokiról|örökre lemondj a sajtról", "minden reggel ugyanazt a dalt hallgasd|soha többé ne halld a kedvenc dalodat", "egy étteremben mindenki előtt elénekelj egy dalt|élő adásban táncolj egy hatalmasat", "mindent tudj a múltról|mindent tudj a jövőről", "egy évig minden este te főzz|egy évig minden este te moss el", "egy évig minden nap sárga ruhát viselj|egy évig pizsamában járj dolgozni", "zombiapokalipszist éljél túl|földönkívüli inváziót éljél túl", "mindig igazat mondj, bármi áron|soha ne mondj igazat, ha fájna", "minden nap találkozz valakivel, akit utálsz|soha többé ne találkozz a barátaiddal", "a 20-as éveidbe visszamenj, de mindent elfelejtve|maradj a mostani korodban, mindenre emlékezve", "egész életedben csak egy ételt egyél, de azt mindig újra szeresd|bármit ehess, de semmi ízét ne érezd", "minden nap kapj egymilliót, de ne költhess belőle|egyszer kapj tízmilliót", "kacsacsőröd legyen|kacsalábad legyen", "minden nevetésedkor csipogj|minden tüsszentésedkor énekelj", "egy napig egy kutya életét élhesd|egy napig egy macska életét élhesd", "nyerj a lottón, de veszítsd el az összes barátod|maradj átlagos, de a barátaiddal", "soha többé ne ragadj dugóban|soha többé ne állj sorban", "mindig pontosan tudd, mennyi az idő|mindig tudd, hol vannak a kulcsaid", "egy hétig csak rímekben beszélhess|egy hétig csak kérdésekkel válaszolhass", "örökre kopasz légy|örökre szemöldök nélkül élj", "minden étel ízét tízszer erősebben érezd|soha többé ne érezz semmilyen szagot", "hatalmas pókok éljenek a szobádban|egy rejtélyes hang beszéljen hozzád éjjel", "minden reggel véletlen hajszínnel ébredj|minden reggel véletlen ruhában ébredj", "egy évig ne használhass autót|egy évig ne használhass liftet", "állatokkal tudj beszélgetni|minden emberi nyelvet értsél", "100 ezer forintot találj egy tárcában, és add vissza|tartsd meg a pénzt, senki sem látta", "minden hazugságot észrevegyél|soha senki ne hazudjon neked, de ne tudd meg, mikor", "egy dühös hattyú üldözzön|egy dühös liba üldözzön", "háromszor akkora fejed legyen|háromszor akkora lábfejed legyen", "minden vizsgára tökéletesen emlékezz|minden film minden mondatára emlékezz", "egy hónapig internet nélkül élj|egy hónapig csak internet legyen, de ki ne mehess a házból", "mindenkinek a nevét elfelejtsd|mindenkinek az arcát elfelejtsd, de a nevére emlékezz", "mindenki hallja a gondolataidat naponta egy percig|soha senki ne értsen meg téged", "örökre tavasz legyen|örökre ősz legyen", "minden nap legyen a szülinapod|soha ne legyen szülinapod, de minden hónapban legyen karácsony", "egy gyönyörű, de nagyon kicsi házban élj|egy kopott, de hatalmas kastélyban élj", "a nevetésed fényt sugározzon|a sírásod szivárványt rajzoljon", "egész életedben ugyanazt a ruhát viseld|soha ne viselhesd a kedvenc színedet", "egy évig csak hátrafelé tudj járni|egy évig csak oldalra tudj lépni", "mindig elsőként tudd meg a jó híreket|mindig elsőként tudd meg a rosszakat, hogy felkészülhess", "az egész város ismerjen|senki ne ismerjen", "az összes ételed édes legyen|az összes ételed sós legyen", "egy évig keveset költs, de utazz a világ körül|egy évig maradj otthon sok pénzzel", "a legjobb barátod költözzön másik kontinensre|a legrosszabb főnököd üljön mindig melletted", "az összes italod ketchup ízű legyen|az összes ételed mustár ízű legyen", "minden mondatod végén mondd: „meow\"|minden mondatod elején mondd: „kapitány\"", "megtudhasd a holnapi időjárást|megtudhasd a jövő heti híreket", "minden hétfőn elvesszen a pénztárcád|minden pénteken elvesszen a kulcsod", "egy filmben főszereplő légy, de gyenge|mellékszereplő légy, de hős", "eljuss a Marsra, de nem térhetsz vissza|soha ne láss igazi csillagot", "minden este egy véletlen híresség vacsorázzon veled|minden reggel egy véletlen állat köszöntsön", "20 centivel magasabb légy|20 centivel alacsonyabb légy", "teljesen rendetlen szobád legyen, de mindent megtalálj|szuper rendezett szobád legyen, de semmit se találj", "most azonnal kapj egy véletlen szuperképességet|három év múlva választhass magadnak bármit", "egy napig a villámnál is gyorsabban fuss|egy napig bármilyen magasra ugorj", "egyetlen nyelvet beszélj, de tökéletesen|tíz nyelven beszélj, de rosszul", "az életed minden napját filmre vegyék, de csak te nézheted|soha semmi ne legyen felvéve rólad", "egész életedben mezítláb járj|egész életedben cipőben aludj", "egy hétig a legrosszabb dalt hallgasd|egy hétig semmilyen zenét ne halljál", "újra gyerek légy, mindenre emlékezve|most 80 éves légy, rengeteg bölcsességgel", "mindig tudd, mit gondolnak rólad|soha ne tudd, mit gondolnak rólad", "mindig meleg legyen a lábad|mindig hideg legyen az orrod", "minden nap más városban ébredj|mindig ugyanott ébredj, de minden nap meglepetéssel", "egy hónapig minden nap áruld el egy titkodat|egy hónapig senkinek ne mondj semmit", "óriási szemed legyen|óriási füled legyen", "egyszer kérdezz meg bármit egy bölcs öregembert|tíz kisebb kérdést kérdezz egy átlagostól", "örökre a világ legjobb szakácsa légy|örökre a világ legjobb táncosa légy", "egész nyáron essen az eső|egész télen süssön a nap", "minden este tűzijáték legyen az égen|minden reggel madárének ébresszen", "a legrosszabb napod ismétlődjön három napig|egy átlagos napod ismétlődjön harminc napig", "az összes hívást fogadnod kell|egyetlen hívást sem fogadhatsz", "egy hétig zöld bőröd legyen|egy hónapig kék hajad legyen", "csak egyszer egyél, de egy napra elég mennyiséget|ötször egyél egész nap kis adagot", "a legjobb barátod elárulja a titkodat|te elárulod az övét", "ölelhess meg egy híres embert, akit szeretsz|ülj le vele egy kávéra", "tökéletes memóriád legyen|tökéletes időérzéked legyen", "mások gondolatait hallgasd, de ne kapcsolhasd ki|ne tudj hazudni", "minden, amit mondasz, igaz legyen|minden viccedet értékeljék", "örökre tiszta ruhád legyen|örökre tiszta lakásod legyen", "egy hétig minden nap ugyanazt a viccet halld|egy hétig soha ne nevess", "a nevedet mindenki elrontsa|a születésnapodat mindenki elfelejtse"],
+r:["egy egész napot az ágyban töltsünk, csak ketten|egy egész estét egy romantikus vacsorán", "én masszírozzalak téged egy órán át|te masszírozz engem egy órán át", "lassú, hosszú csókolózás|hirtelen, szenvedélyes csók a konyhában", "szerelmes levelet kapj tőlem|meglepetés-videót kapj tőlem", "egy hétig csak nézhetjük egymást, nem érhetünk össze|egy hétig csak érintések, szavak nélkül", "közös zuhany|közös fürdő gyertyafénynél", "te irányíts egész este|én irányítsak egész este", "a fülembe suttogd, mit szeretnél|cetlire írd, és hagyd a párnámon", "reggeli ölelkezés az ágyban|esti ölelkezés a takaró alatt", "meglepetés fehérnemű|meglepetés vacsora", "kötött szemmel találgassam, mit csinálsz|te találgass kötött szemmel", "csókkal ébressz|reggelivel az ágyban ébressz", "hétvége egy faházban, csak ketten|hotel jacuzzival", "mondd el a legmerészebb fantáziád|kérdezd meg az enyémet", "heves vita után kibékülés|lassú, gyengéd esti kibékülés", "egész éjjel táncoljunk a szobában|egész éjjel beszélgessünk", "epres, tejszínes játék|jégkockás játék", "titkos csók egy zsúfolt helyen|szabad szerelem otthon, függönyök behúzva", "egy hétig minden este más szerepjáték|egy hétig minden este a kedvenc esténk", "halk zene és gyertyák|hangos zene és tánc", "hosszú előjáték|spontán, váratlan pillanat", "ő kezdeményezzen mindig|váltakozva kezdeményezzünk", "fáradtan is csak ölelkezzünk|kipihenten egy hosszú éjszaka", "tegyek rád egy forró csókot a nyakadra|a derekadra", "egy képet küldjek neked, ami csak neked szól|egy hangüzenetet, ami csak neked szól", "a kedvenc helyünkön kezdjük a randit, és otthon fejezzük be|otthon kezdjük, és ott fejezzük be", "egy hétig kimaradjon minden képernyő, csak mi ketten|egy hétig minden este új játékot találjunk ki", "én vegyek fel egy szexi szerepet|te vegyél fel egyet", "első alkalom emlékét idézzük fel|találjunk ki valami teljesen újat", "az illatod|a hangod adja ki ma este a hangulatot", "a kanapén bújjunk össze egy filmmel|gyertyafényben a szőnyegen feküdjünk", "én válasszam ki, mit vegyél fel|te válaszd ki, mit vegyek fel", "nyakmasszázst kapj tőlem|lábmasszázst kapj tőlem", "minden ajtóban csókolj meg|minden sarkon ölelj meg", "egész napos kényeztetés téged|egész napos kényeztetés engem", "kacér pillantással várj|csókkal köszönj, amikor belépek", "a csillagokat nézzük takaró alatt|a tűz mellett üljünk összebújva", "az első randink újrajátszása|egy teljesen új, közös kaland", "mondd el, mi tetszik rajtam a legjobban|mondd el, mi izgat bennem a legjobban", "én főzzek neked, te nézz|te főzz, én nézlek", "forró csók a nyakamra|gyengéd csók a homlokomra", "hétvége, ahol ki sem kelünk az ágyból|hétvége, ahol ki sem szállunk a kádból", "kérj tőlem valamit suttogva|parancsolj nekem játékból", "simogasd a hajam elalvásig|simogasd a hátam elalvásig", "szexi táncot adjak neked|te adj nekem szexi táncot", "egy este csak mozdulatokkal|egy este csak szavakkal", "együtt zuhanyozzunk reggel|együtt fürödjünk este", "romantikus szöveget olvassunk fel egymásnak|szexi üzenetet írjunk egymásnak", "fedezzük fel egymás kedvenc pontját|találjunk ki valami teljesen újat", "piknik a hegyen|vacsora a tetőn", "én legyek a főnök egy estére|te légy a főnök egy estére", "építsünk sátrat a takarókból|bújjunk össze egy halom párnán", "csókok vég nélkül a kocsiban|ölelés a vonaton hazafelé", "egy hosszú ölelés szó nélkül|egy hosszú beszélgetés érintés nélkül", "az ujjaid a hajamban|a leheleted a nyakamon", "szexi képet kapj tőlem|szexi hangüzenetet kapj tőlem", "a vesztes csókot ad egy játékban|a vesztes teljesít egy kívánságot", "én mondjam el, mi izgat|te mondd el, mi izgat", "egy hosszú autóút zenével|egy hosszú séta kézen fogva", "lassan vetkőztess le|lassan vetkőzz le előttem", "csókold végig a nyakam|csókold végig a hátam", "egész éjjel egymás szemébe nézzünk|egész éjjel suttogjunk", "kösd meg játékból a kezem egy sállal|én kössem meg a tiéd", "szép fehérneműt vegyek fel neked|az ingedet kapjam meg estére", "hívj fel este, és csak suttogj|küldj hangüzenetet a zuhanyból", "közös titkos fotóalbumunk legyen|közös emlékkönyvünk legyen", "lassú tánc a konyhában|lassú tánc a hálóban", "forró csokit igyunk egymás ölében|bort igyunk a kádban", "egy rövid, szenvedélyes éjszaka|egy hosszú, gyengéd éjszaka", "olajjal masszírozzam a válladat|olajjal masszírozzam a talpadat", "egymás ölelésében ébredjünk|elalvás előtt beszélgessünk hosszan", "énekeljek neked egy szerelmes dalt|írjak neked verset", "finoman harapd meg a fülemet|csókold meg a nyakamat", "szőlőt etessünk egymással|epret etessünk egymással", "te válaszd a zenét ma estére|te válaszd az illatot ma estére", "szexi filmet nézzünk együtt|romantikus filmet nézzünk együtt", "egy éjszaka csak gyertyafényben|egy éjszaka teljes sötétben", "egy hónapig minden nap más csókot adjunk|egy hónapig minden nap más ölelést adjunk", "szerelmes cetlit találj a táskádban|meglepetés virágot a párnádon", "én vezessek, te csókolj|te vezess, én csókollak", "lassan vetkőzzünk le egymás előtt|lassan öltöztessük egymást", "hosszú ölelés ébredéskor|gyors csók munkába indulás előtt", "mondd el, mit gondoltál rólam az első napon|mondd el, mit tennél velem ma este", "kérdezz tőlem egy merész kérdést|kérdezzek tőled egy merész kérdést", "egymás ölében nézzünk filmet|egymás mellett fekve nézzünk filmet", "reggeli az ágyban|kávé a teraszon kettesben", "szexi öltözékben vacsorázzunk|pizsamában vacsorázzunk a kanapén", "csókok az egész testen|csak a kéz és a nyak csókjai", "játsszunk el egy jelenetet egy filmből|találjunk ki egy új szerepet", "szoros ölelés alvás közben|a karod a derekamon alvás közben", "mondd el a legszebb csókunkat|mondd el a legszebb éjszakánkat", "gyertyák és rózsaszirom|halk zene és egy pohár bor", "csókolj meg váratlanul a zuhany alatt|ölelj át hátulról főzés közben", "olvassak fel neked egy szexi történetet|te olvass fel nekem", "néma éjszaka csak érintésekkel|nevetős éjszaka sok beszélgetéssel", "előre megtervezett éjszaka|teljesen spontán éjszaka", "a legbátrabb kívánságunk teljesítése|a legcukibb kívánságunk teljesítése", "közös listát írjunk a vágyainkról|játsszunk igazság vagy mersz-et", "suttogd, hogy szeretsz|kiabáld, hogy szeretsz", "egy este csak a te szavaid vezessenek|egy este csak az én szavaim vezessenek"]},W={w:{},r:{}},wm="d",wJ={};
+function wst(){var s=W[wm]||{};return{i:s.i||0,seen:s.seen||"0",ans:s.ans||{}}}
+function renderW(){
+ var box=document.getElementById("wbox");if(wm==="d"||!box)return;
+ var s=wst(),L=WQ[wm],q=L[s.i].split("|"),ot=me==="a"?"b":"a",mine=me?s.ans[me]:undefined,th=me?s.ans[ot]:undefined,both=mine!==undefined&&th!==undefined,h="";
+ document.getElementById("wtitle").textContent=wm==="r"?"Inkább…? 🔥 Romantikus":"Inkább…? 🤔 Vicces";
+ document.getElementById("wnote").textContent=wm==="r"?"18+ · pároknak, csak személyesen játsszátok. Ha valamelyikőtöknek nem kényelmes egy kérdés, nyugodtan ugorjatok.":"Fura, nehéz és vicces dilemmák. Mindketten válasszatok, aztán kiderül, egyformán gondolkodtok-e.";
+ if(!me){box.innerHTML='<div class="stat">Válaszd ki felül, hogy ki vagy.</div>';return}
+ h+='<div class="stat">'+s.seen.split(",").length+"/"+L.length+". kérdés ebben a körben</div>";
+ q.forEach(function(t,k){var bd="";if(both)["a","b"].forEach(function(p){if(s.ans[p]===k)bd+='<span class="wbd" style="background:'+(p==="a"?"#2ecc40":"#ffd23f")+'">'+NAMES[p]+"</span>"});
+  h+='<button class="wb'+(mine===k?" sel":"")+'" data-w="'+k+'">Inkább '+esc(t)+"<br>"+bd+"</button>"});
+ h+=both?'<div class="msg">'+(mine===th?"Ugyanazt választottátok! 💞":"Más-más utat választottatok 😄")+'</div><button class="save" id="wnext">Következő kérdés ➡</button>':'<div class="stat">'+(mine===undefined?"Válassz egyet!":"Várom, hogy "+NAMES[ot]+" is válasszon…")+'</div><div style="text-align:center"><button class="chip" id="wskip">⏭ Átugrom ezt a kérdést</button></div>';
+ box.innerHTML=h}
+document.getElementById("wbox").onclick=function(ev){
+ var t=ev.target;if(!me||!t.closest)return;var s=wst(),ot=me==="a"?"b":"a",bt=t.closest("[data-w]");
+ if(t.closest("#wnext,#wskip")){var L=WQ[wm],seen=s.seen.split(",").map(Number);if(seen.length>=L.length)seen=[];
+  var pool=L.map(function(_,i){return i}).filter(function(i){return seen.indexOf(i)<0&&i!==s.i}),n=pool[Math.floor(Math.random()*pool.length)];seen.push(n);
+  var o={i:n,seen:seen.join(",")};W[wm]=o;lastWrite=Date.now();if(base)remote("PUT","wyr/"+wm,o).catch(function(){});renderW()}
+ else if(bt&&!(s.ans[me]!==undefined&&s.ans[ot]!==undefined)){var c=W[wm]=W[wm]||{};c.i=s.i;c.seen=s.seen;c.ans=c.ans||{};c.ans[me]=+bt.dataset.w;
+  lastWrite=Date.now();if(base)remote("PUT","wyr/"+wm+"/ans/"+me,c.ans[me]).catch(function(){});renderW()}};
+function pollW(){
+ if(!base||wm==="d"||document.getElementById("tab-q").hidden)return;var m=wm;
+ fetch(base+"/wyr/"+m+".json").then(function(r){return r.json()}).then(function(d){
+  if(Date.now()-lastWrite<1500||m!==wm)return;var j=JSON.stringify(d||{});if(j===wJ[m])return;wJ[m]=j;W[m]=d||{};renderW()}).catch(function(){})}
+document.querySelectorAll("#qsub .pill").forEach(function(b){b.onclick=function(){
+ document.querySelectorAll("#qsub .pill").forEach(function(x){x.className="pill"+(x===b?" sel":"")});wm=b.dataset.q;
+ document.getElementById("q-d").hidden=wm!=="d";document.getElementById("q-w").hidden=wm==="d";
+ if(wm==="d")renderQ();else{renderW();pollW()}}});
+setInterval(pollW,2000);
 // Közös szinkron (Firebase Realtime Database, REST)
 var CANDS=["https://retekreka-e08e5-default-rtdb.europe-west1.firebasedatabase.app"];
 var note=document.getElementById("syncnote"),lastJson="";
@@ -1250,7 +1326,7 @@ function findBase(i){
   var ac=new AbortController(),to=setTimeout(function(){ac.abort()},7000);
   fetch(CANDS[i]+"/state.json",{signal:ac.signal}).then(function(r){
     clearTimeout(to);if(!r.ok)throw 0;return r.json()
-  }).then(function(){base=CANDS[i];spData();setInterval(spData,5000);cleanup();pull();setInterval(pull,2000);pollQa();setInterval(pollQa,3000);pollGame();setInterval(pollGame,2000);pollF();setInterval(pollF,4000);pollEv();setInterval(pollEv,3000);pollRd();setInterval(pollRd,3000);pollCook();setInterval(pollCook,3000);pollC4();setInterval(pollC4,1500);pollBS();setInterval(pollBS,1500);pollRJ();setInterval(pollRJ,2000)}).catch(function(){clearTimeout(to);findBase(i+1)});
+  }).then(function(){base=CANDS[i];spData();setInterval(spData,5000);cleanup();pull();setInterval(pull,2000);pollQa();setInterval(pollQa,3000);pollGame();setInterval(pollGame,2000);pollF();setInterval(pollF,4000);pollEv();setInterval(pollEv,3000);pollRd();setInterval(pollRd,3000);pollCook();setInterval(pollCook,3000);pollC4();setInterval(pollC4,1500);pollBS();setInterval(pollBS,1500);pollRJ();setInterval(pollRJ,2000);pollBL();setInterval(pollBL,3000)}).catch(function(){clearTimeout(to);findBase(i+1)});
 }
 findBase(0);
 })();
