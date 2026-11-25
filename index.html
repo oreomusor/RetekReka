@@ -58,6 +58,7 @@ h2{margin:0 0 10px;font-size:1.1rem}
 .note{text-align:center;font-size:.8rem;color:var(--mut);margin-top:6px}
 body{transition:background .6s}
 :root.tog{color-scheme:dark;--bg:#0f0d10;--card:#1b171c;--tx:#ffe9ef;--mut:#b9939f;--soft:#3a2a33;--line:#33262e;--empty:#38303a}
+#car-stick{position:relative;width:150px;height:150px;margin:12px auto;border-radius:50%;background:var(--soft);touch-action:none;user-select:none}#car-knob{position:absolute;left:28%;top:28%;width:44%;height:44%;border-radius:50%;background:var(--pink);pointer-events:none;box-shadow:0 3px 8px rgba(0,0,0,.25)}
 </style>
 </head>
 <body>
@@ -147,7 +148,7 @@ body{transition:background .6s}
   </section>
 </div>
 <div id="tab-g" hidden>
-  <div class="who" id="gsub"><button class="pill sel" data-g="w">Szójáték</button><button class="pill" data-g="c">Connect 4</button><button class="pill" data-g="b">Torpedó</button></div>
+  <div class="who" id="gsub"><button class="pill sel" data-g="w">Szójáték</button><button class="pill" data-g="c">Connect 4</button><button class="pill" data-g="b">Torpedó</button><button class="pill" data-g="r">🏎 Autó</button></div>
   <div id="g-w">
   <section class="card">
     <h2>Szójáték</h2>
@@ -173,6 +174,25 @@ body{transition:background .6s}
     <div id="bsctl"></div>
     <div class="note" id="bsscore"></div>
     <div class="note">Mindketten elhelyeztek 5 hajót (5, 4, 3, 3 és 2 mező hosszút). Felváltva lőttök a másik vizére. Aki előbb elsüllyeszti az összes hajót, nyer. ✖ = találat, • = mellé.</div>
+  </section>
+  </div>
+  <div id="g-r" hidden>
+  <section class="card">
+    <h2>Autóverseny 🏎</h2>
+    <div id="car-menu">
+      <div class="who" id="car-mode"><button class="pill sel" data-cm="t">⏱ Rekordidő</button><button class="pill" data-cm="r">🏁 Verseny (7 kör)</button></div>
+      <select id="car-trk" class="tin" style="width:100%;margin-bottom:8px"></select>
+      <div class="stat" id="car-info"></div>
+      <button class="save" id="car-go">▶ Indítás</button>
+      <div class="note">Filius = zöld, Réka = sárga. A joystickot told abba az irányba, amerre menni akarsz (gépen: nyilak vagy WASD). A fűben lassabb vagy. Rekordidő: a legjobb köridődet mérjük. Verseny: 7 kör, egyszerre kell játszanotok, és látjátok egymás autóját.</div>
+    </div>
+    <div id="car-play" hidden>
+      <div class="stat" id="car-hud"></div>
+      <canvas id="car-cv" style="width:100%;height:330px;border-radius:16px;display:block;touch-action:none"></canvas>
+      <div class="ans" id="car-res" hidden style="text-align:center;font-weight:700"></div>
+      <div id="car-stick"><div id="car-knob"></div></div>
+      <div style="text-align:center"><button class="chip" id="car-exit">⬅ Kilépés</button></div>
+    </div>
   </section>
   </div>
 </div>
@@ -649,8 +669,8 @@ function pollC4(){
 }
 document.querySelectorAll("#gsub .pill").forEach(function(b){b.onclick=function(){
   document.querySelectorAll("#gsub .pill").forEach(function(x){x.className="pill"+(x===b?" sel":"")});
-  ["w","c","b"].forEach(function(t){document.getElementById("g-"+t).hidden=b.dataset.g!==t});
-  if(b.dataset.g==="c")renderC4();else if(b.dataset.g==="b")renderBS();else renderG()}});
+  ["w","c","b","r"].forEach(function(t){document.getElementById("g-"+t).hidden=b.dataset.g!==t});
+  if(b.dataset.g==="c")renderC4();else if(b.dataset.g==="b")renderBS();else if(b.dataset.g==="r")CAR.open();else renderG()}});
 renderC4();
 var bs={},bsJson="",bsLast=0,bsMine="",BSN=[5,4,3,3,2];
 function ask80(k,val){
@@ -840,6 +860,127 @@ function pollRd(){
   }).catch(function(){});
 }
 renderRd();
+// Autóverseny
+var CAR=(function(){
+var $=function(i){return document.getElementById(i)},N=360,W=92,LAPS=7,TAU=Math.PI*2,COL={a:"#2ecc40",b:"#ffd23f"};
+var TR=[["Ovális",1.5,.85,[]],["Tojás",1.45,.9,[[1,.18,0]]],["Bab",1.35,.95,[[2,.16,0],[1,.1,1]]],["Háromszög",1.1,1.1,[[3,.12,.5]]],["Lekerekített négyzet",1.1,1.1,[[4,.06,0]]],["Csillag",1.15,1.15,[[5,.045,0]]],["Hosszú",1.9,.7,[[2,.1,0]]],["Kacsa",1.4,1,[[1,.2,0],[3,.07,0]]],["Hullámos",1.3,1,[[6,.03,0]]],["Kígyó",1.6,.8,[[3,.1,0],[2,.12,1]]],["Pillangó",1.4,1,[[2,.2,0],[4,.04,0]]],["Szív ❤"]];
+var mode="t",P,car,oth,running=false,cd=0,t0=0,rid=0,doneId=0,room=null,joy={x:0,y:0},keys={},bests={},last=0,sendT=0,pollT=0,raf=0,chg=0,off=0,offT=0;
+var cv=$("car-cv"),cx=cv.getContext("2d"),sel=$("car-trk"),st=$("car-stick"),kn=$("car-knob");
+TR.forEach(function(t,i){var o=document.createElement("option");o.value=i;o.textContent=(i+1)+". "+t[0];sel.appendChild(o)});
+function mk(i){var Q=[],t=TR[i],j,a,r,s,c;
+ for(j=0;j<N;j++){a=TAU*(j+N/4)/N;
+  if(i==11){s=Math.sin(a);c=Math.cos(a);Q.push([.6*28*16*s*s*s+.4*350*s,-.6*28*(13*c-5*Math.cos(2*a)-2*Math.cos(3*a)-Math.cos(4*a))-.4*350*c])}
+  else{r=1;t[3].forEach(function(q){r+=q[1]*Math.cos(q[0]*a+q[2])});Q.push([400*t[1]*r*Math.cos(a),400*t[2]*r*Math.sin(a)])}}
+ if(i==11)Q=Q.map(function(_,j){var x=0,y=0,k,p;for(k=-30;k<=30;k++){p=Q[(j+k+N)%N];x+=p[0];y+=p[1]}return[x/61,y/61]});
+ return Q}
+function fmt(ms){return Math.floor(ms/60000)+":"+("0"+(ms/1000%60).toFixed(1)).slice(-4)}
+function other(){return me=="a"?"b":"a"}
+function hd(i){var p=P[(i+2)%N],u=P[(i+N-2)%N];return Math.atan2(p[1]-u[1],p[0]-u[0])}
+function clk(){var t1=Date.now();offT=t1;remote("PUT","race/clk/"+me,{".sv":"timestamp"}).then(function(r){return r.json()}).then(function(ts){if(typeof ts=="number")off=ts-(t1+Date.now())/2}).catch(function(){})}
+function saveBest(lt){var tk=sel.value;bests[tk]=bests[tk]||{};if(!bests[tk][me]||lt<bests[tk][me])bests[tk][me]=lt;
+ if(!base)return;fetch(base+"/race/best/"+tk+"/"+me+".json").then(function(r){return r.json()}).then(function(d){if(!d||lt<d)remote("PUT","race/best/"+tk+"/"+me,lt)}).catch(function(){})}
+function begin(m,go){
+ mode=m;P=mk(+sel.value);var d=hd(0),o=m=="r"?(me=="a"?-17:17):0;
+ car={x:P[0][0]-Math.sin(d)*o,y:P[0][1]+Math.cos(d)*o,a:d,v:0,idx:0,laps:0,max:0,half:0,off:0,best:0,last:0,fin:0};
+ oth=null;cd=go||Date.now()+3500;t0=cd;car.lapT=cd;
+ $("car-menu").hidden=true;$("car-play").hidden=false;$("car-res").hidden=true;size();running=true;last=Date.now();
+ cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
+function lapDone(now){
+ if(car.laps<=car.max)return;car.max=car.laps;var lt=now-car.lapT;car.lapT=now;car.last=lt;
+ if(mode=="t"){if(!car.best||lt<car.best)car.best=lt;saveBest(lt)}
+ else if(car.laps>=LAPS)car.fin=now-t0}
+function step(dt,now){
+ var jx=joy.x,jy=joy.y,kx=(keys.arrowright||keys.d?1:0)-(keys.arrowleft||keys.a?1:0),ky=(keys.arrowdown||keys.s?1:0)-(keys.arrowup||keys.w?1:0);
+ if(kx||ky){var kl=Math.hypot(kx,ky);jx=kx/kl;jy=ky/kl}
+ var m=Math.min(1,Math.hypot(jx,jy));if(now<cd||car.fin)m=0;
+ if(m>.12){var df=Math.atan2(Math.sin(Math.atan2(jy,jx)-car.a),Math.cos(Math.atan2(jy,jx)-car.a)),mx=3.4*dt;car.a+=Math.max(-mx,Math.min(mx,df))}
+ var vm=(car.off?110:260)*Math.min(1,m*1.25);
+ car.v+=(vm-car.v)*Math.min(1,dt*(vm>car.v?2.2:3));
+ car.x+=Math.cos(car.a)*car.v*dt;car.y+=Math.sin(car.a)*car.v*dt;
+ var bi=car.idx,bd=1e9,k,j,dx,dy,d2;
+ for(k=-14;k<=14;k++){j=(car.idx+k+N)%N;dx=P[j][0]-car.x;dy=P[j][1]-car.y;d2=dx*dx+dy*dy;if(d2<bd){bd=d2;bi=j}}
+ car.off=bd>W*W/4?1:0;
+ if(bd>260*260){car.x=P[bi][0];car.y=P[bi][1];car.a=hd(bi);car.v=0}
+ var pi=car.idx;car.idx=bi;
+ if(pi>N*.75&&bi<N*.25){if(car.half){car.half=0;car.laps++;lapDone(now)}}
+ else if(pi<N*.25&&bi>N*.75){car.laps--;car.half=1}
+ else if(bi>N*.4&&bi<N*.6)car.half=1;
+ if(mode=="r"&&base){
+  if(now-sendT>120){sendT=now;remote("PUT","race/p/"+me,{id:rid,x:car.x|0,y:car.y|0,a:+car.a.toFixed(2),pr:car.laps*N+car.idx,fin:car.fin}).catch(function(){})}
+  if(now-pollT>120){pollT=now;fetch(base+"/race/p/"+other()+".json").then(function(r){return r.json()}).then(function(d){
+   if(d&&d.id===rid){if(!oth)oth={x:d.x,y:d.y,a:d.a};oth.tx=d.x;oth.ty=d.y;oth.ta=d.a;oth.pr=d.pr;oth.fin=d.fin}}).catch(function(){})}}
+ if(oth&&oth.tx!=null){oth.x+=(oth.tx-oth.x)*.3;oth.y+=(oth.ty-oth.y)*.3;oth.a+=Math.atan2(Math.sin(oth.ta-oth.a),Math.cos(oth.ta-oth.a))*.3}
+}
+function size(){var d=window.devicePixelRatio||1;cv.width=cv.clientWidth*d;cv.height=cv.clientHeight*d;cx.setTransform(d,0,0,d,0,0)}
+function drawCar(o,c,nm){cx.save();cx.translate(o.x,o.y);cx.rotate(o.a);cx.fillStyle=c;cx.strokeStyle="#000";cx.lineWidth=2;
+ cx.fillRect(-15,-8,30,16);cx.strokeRect(-15,-8,30,16);cx.fillStyle="rgba(0,0,0,.55)";cx.fillRect(2,-6,7,12);cx.restore();
+ cx.fillStyle="#fff";cx.font="bold 14px system-ui";cx.textAlign="center";cx.fillText(nm,o.x,o.y-17)}
+function draw(now){
+ var w=cv.clientWidth,h=cv.clientHeight,z=w/620,i,d;
+ cx.fillStyle="#3b8a3b";cx.fillRect(0,0,w,h);
+ cx.save();cx.translate(w/2,h/2);cx.scale(z,z);cx.translate(-car.x,-car.y);
+ cx.beginPath();cx.moveTo(P[0][0],P[0][1]);for(i=1;i<N;i++)cx.lineTo(P[i][0],P[i][1]);cx.closePath();
+ cx.lineJoin="round";cx.strokeStyle="#fff";cx.lineWidth=W+10;cx.stroke();
+ cx.strokeStyle="#4b4f57";cx.lineWidth=W;cx.stroke();
+ cx.strokeStyle="rgba(255,255,255,.5)";cx.lineWidth=3;cx.setLineDash([18,22]);cx.stroke();cx.setLineDash([]);
+ d=hd(0);cx.save();cx.translate(P[0][0],P[0][1]);cx.rotate(d);cx.fillStyle="#fff";cx.fillRect(-5,-W/2,10,W);cx.fillStyle="#000";
+ for(i=0;i<12;i++)cx.fillRect(-5+(i%2)*5,-W/2+i*(W/12),5,W/12);cx.restore();
+ if(oth)drawCar(oth,COL[other()],NAMES[other()]);
+ drawCar(car,COL[me],NAMES[me]);cx.restore();
+ if(now<cd+700){cx.fillStyle="#fff";cx.strokeStyle="#000";cx.lineWidth=5;cx.font="bold 80px system-ui";cx.textAlign="center";
+  var tx=now<cd?String(Math.ceil((cd-now)/1000)):"RAJT!";cx.strokeText(tx,w/2,h/2);cx.fillText(tx,w/2,h/2)}
+ var s;
+ if(mode=="r"){var pl=oth&&oth.pr>car.laps*N+car.idx?2:1;s="Kör "+Math.min(LAPS,car.laps+1)+"/"+LAPS+" · "+pl+". hely · "+fmt(car.fin||Math.max(0,now-t0))}
+ else s="Kör "+(car.laps+1)+" · "+fmt(Math.max(0,now-car.lapT))+(car.last?" · utolsó "+fmt(car.last):"")+(bests[sel.value]&&bests[sel.value][me]?" · rekord "+fmt(bests[sel.value][me]):"");
+ $("car-hud").textContent=s;
+ var t="";
+ if(mode=="r"){if(car.fin){t="🏁 Célba értél: "+fmt(car.fin);if(oth&&oth.fin){var wn=car.fin<oth.fin?me:other();t+="\n"+(wn==me?"🏆 Te nyertél!":"🏆 "+NAMES[wn]+" nyert ("+fmt(oth.fin)+")")}else t+="\nVárom, hogy a másik is beérjen…"}
+  else if(oth&&oth.fin)t=NAMES[other()]+" már célba ért: "+fmt(oth.fin)}
+ var e=$("car-res");if(e.textContent!==t){e.textContent=t;e.hidden=!t}}
+function loop(){raf=requestAnimationFrame(loop);if(!running)return;var now=Date.now(),dt=Math.min(.05,(now-last)/1000);last=now;
+ if(!cv.offsetParent){joy.x=joy.y=0;return}step(dt,now);draw(now)}
+function jset(e){var r=st.getBoundingClientRect(),R=r.width/2,dx=(e.clientX-r.left-R)/R,dy=(e.clientY-r.top-R)/R,l=Math.hypot(dx,dy);
+ if(l>1){dx/=l;dy/=l}joy.x=dx;joy.y=dy;kn.style.transform="translate("+dx*R*.55+"px,"+dy*R*.55+"px)"}
+function jend(){joy.x=joy.y=0;kn.style.transform=""}
+st.onpointerdown=function(e){st.setPointerCapture(e.pointerId);jset(e);e.preventDefault()};
+st.onpointermove=function(e){if(st.hasPointerCapture(e.pointerId))jset(e)};
+st.onpointerup=st.onpointercancel=jend;
+window.addEventListener("keydown",function(e){if(!running)return;keys[e.key.toLowerCase()]=1;if(e.key.indexOf("Arrow")==0)e.preventDefault()});
+window.addEventListener("keyup",function(e){delete keys[e.key.toLowerCase()]});
+window.addEventListener("resize",function(){if(running)size()});
+function refresh(){var i=sel.value,b=bests[i]||{},h="";
+ ["a","b"].forEach(function(k){h+=NAMES[k]+" rekordköre: "+(b[k]?fmt(b[k]):"–")+"<br>"});
+ if(mode=="r"){if(!base)h+="⚠ Nincs kapcsolat a közös adatbázissal, a verseny most nem indítható.";
+  else if(room&&room.id!==doneId){var rd=room.ready||{};h+=["a","b"].map(function(k){return NAMES[k]+(typeof rd[k]=="number"?" ✅ kész":" ⏳ nem kész")}).join(" · ")}
+  else h+="Nyomd meg a gombot, ha készen állsz – amikor ketten készen vagytok, indul a verseny."}
+ $("car-info").innerHTML=h}
+function fetchBests(){if(!base)return;var i=sel.value;fetch(base+"/race/best/"+i+".json").then(function(r){return r.json()}).then(function(d){bests[i]=d||{};refresh()}).catch(function(){})}
+function poll(){
+ if(!base||$("car-menu").offsetParent===null)return;
+ if(!off||Date.now()-offT>10000)clk();
+ fetch(base+"/race/room.json").then(function(r){return r.json()}).then(function(d){
+  room=d;
+  if(mode=="r"&&room&&room.id!==doneId){var rd=room.ready||{};
+   if(Date.now()-chg>2500&&sel.value!=room.track){sel.value=room.track;fetchBests()}
+   if(off&&typeof rd.a=="number"&&typeof rd.b=="number"){var go=Math.max(rd.a,rd.b)+4000-off;
+    if(go>Date.now()-6000){doneId=room.id;rid=room.id;sel.value=room.track;begin("r",go)}}}
+  refresh()}).catch(function(){})}
+setInterval(poll,800);
+sel.onchange=function(){chg=Date.now();fetchBests();refresh()};
+document.querySelectorAll("#car-mode .pill").forEach(function(b){b.onclick=function(){
+ document.querySelectorAll("#car-mode .pill").forEach(function(x){x.className="pill"+(x===b?" sel":"")});
+ mode=b.dataset.cm;$("car-go").textContent=mode=="r"?"🏁 Kész vagyok – indulhat!":"▶ Indítás";refresh()}});
+$("car-go").onclick=function(){
+ if(mode=="t"){begin("t");return}
+ if(!base){refresh();return}
+ var sv={".sv":"timestamp"};chg=Date.now();clk();
+ if(room&&room.id!==doneId&&room.track==sel.value)remote("PUT","race/room/ready/"+me,sv).catch(function(){});
+ else{var o={track:+sel.value,id:Date.now(),ready:{}};o.ready[me]=sv;room={track:o.track,id:o.id,ready:{}};remote("PUT","race/room",o).catch(function(){})}
+ refresh()};
+$("car-exit").onclick=function(){running=false;cancelAnimationFrame(raf);jend();$("car-play").hidden=true;$("car-menu").hidden=false;
+ if(mode=="r"&&base)remote("DELETE","race/p/"+me).catch(function(){});refresh();fetchBests()};
+return{open:function(){if(!running){refresh();fetchBests();poll()}}}
+})();
 // Közös szinkron (Firebase Realtime Database, REST)
 var CANDS=["https://retekreka-e08e5-default-rtdb.europe-west1.firebasedatabase.app"];
 var note=document.getElementById("syncnote"),lastJson="";
