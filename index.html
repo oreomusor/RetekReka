@@ -59,6 +59,18 @@ h2{margin:0 0 10px;font-size:1.1rem}
 body{transition:background .6s}
 :root.tog{color-scheme:dark;--bg:#0f0d10;--card:#1b171c;--tx:#ffe9ef;--mut:#b9939f;--soft:#3a2a33;--line:#33262e;--empty:#38303a}
 #car-stick{position:relative;width:150px;height:150px;margin:12px auto;border-radius:50%;background:var(--soft);touch-action:none;user-select:none}#car-knob{position:absolute;left:28%;top:28%;width:44%;height:44%;border-radius:50%;background:var(--pink);pointer-events:none;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+.rjg{display:grid;gap:1px;background:#6b5560;border:1px solid #6b5560;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.rjg>div{aspect-ratio:1;position:relative;overflow:hidden;min-width:0}
+.rl{background:var(--bg);cursor:pointer}.rl.wd{background:rgba(255,210,63,.4)}.rl.sel{background:var(--pink)}.rl.bad{background:#ff9b9b}
+.rv{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.25rem}
+.rv.pa{color:#d6336c}.rv.pb{color:#2d5fd1}.rl.sel .rv{color:#fff}
+.rb{background:#6b5560}.rk{background:var(--soft);cursor:pointer}
+.rt{position:absolute;left:0;right:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:.5rem;line-height:1.05;color:var(--tx);overflow:hidden;font-weight:600;hyphens:auto}
+.rt.o{top:0;bottom:0}.rt.a2{top:0;height:50%;border-bottom:1px solid var(--line)}.rt.b2{bottom:0;height:50%}
+.rt span{padding:1px 7px 5px 1px;word-break:break-word}.rt i{position:absolute;font-style:normal;font-size:.5rem;color:var(--pink)}
+.rt i.r{right:0;top:50%;transform:translateY(-50%)}.rt i.d{bottom:0;left:50%;transform:translateX(-50%)}
+#rjin{position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;border:0;padding:0;font-size:16px}
+#g-x .card{padding:10px}
 </style>
 </head>
 <body>
@@ -171,7 +183,7 @@ body{transition:background .6s}
   </section>
 </div>
 <div id="tab-g" hidden>
-  <div class="who" id="gsub"><button class="pill sel" data-g="w">Szójáték</button><button class="pill" data-g="c">Connect 4</button><button class="pill" data-g="b">Torpedó</button><button class="pill" data-g="r">🏎 Autó</button></div>
+  <div class="who" id="gsub"><button class="pill sel" data-g="w">Szójáték</button><button class="pill" data-g="c">Connect 4</button><button class="pill" data-g="b">Torpedó</button><button class="pill" data-g="r">🏎 Autó</button><button class="pill" data-g="x">🧩 Rejtvény</button></div>
   <div id="g-w">
   <section class="card">
     <h2>Szójáték</h2>
@@ -216,6 +228,15 @@ body{transition:background .6s}
       <div id="car-stick"><div id="car-knob"></div></div>
       <div style="text-align:center"><button class="chip" id="car-exit">⬅ Kilépés</button></div>
     </div>
+  </section>
+  </div>
+  <div id="g-x" hidden>
+  <section class="card">
+    <h2>Rejtvény 🧩</h2>
+    <div id="rjbox"></div>
+    <input id="rjin" autocomplete="off" autocapitalize="characters" aria-label="Betű beírása">
+    <div class="note" id="rjnote"></div>
+    <div class="note">Skandináv rejtvény: a nyilas mezők mutatják, merre kell beírni a megfejtést. Koppints egy mezőre, és írd be a betűket (ékezet nélkül is jó). Mindketten ugyanazt a rejtvényt töltitek ki, élőben.</div>
   </section>
   </div>
 </div>
@@ -702,8 +723,8 @@ function pollC4(){
 }
 document.querySelectorAll("#gsub .pill").forEach(function(b){b.onclick=function(){
   document.querySelectorAll("#gsub .pill").forEach(function(x){x.className="pill"+(x===b?" sel":"")});
-  ["w","c","b","r"].forEach(function(t){document.getElementById("g-"+t).hidden=b.dataset.g!==t});
-  if(b.dataset.g==="c")renderC4();else if(b.dataset.g==="b")renderBS();else if(b.dataset.g==="r")CAR.open();else renderG()}});
+  ["w","c","b","r","x"].forEach(function(t){document.getElementById("g-"+t).hidden=b.dataset.g!==t});
+  if(b.dataset.g==="c")renderC4();else if(b.dataset.g==="b")renderBS();else if(b.dataset.g==="r")CAR.open();else if(b.dataset.g==="x")renderRJ();else renderG()}});
 renderC4();
 var bs={},bsJson="",bsLast=0,bsMine="",BSN=[5,4,3,3,2];
 function ask80(k,val){
@@ -1090,6 +1111,83 @@ document.getElementById("spsave").onclick=function(){var v=document.getElementBy
   if(base){lastWrite=Date.now();remote("PUT","sp/cfg",{cid:v}).catch(function(){})}
   document.getElementById("spsetup").hidden=true;renderSp()};
 setInterval(spPlay,10000);setInterval(renderSp,20000);renderSp();
+// Skandináv rejtvény (közös kitöltés)
+var RJP=[{"w":7,"h":10,"g":".VILLÁMK......A.BÁNATR.U...E.ASZTALV.Z.A.EI...V.FL.ÓRA.OL...S.NA.MEZŐ.","c":{"0":[["Égi fény","r"],["Végtag","d"]],"9":[["Tömegjármű","d"]],"13":[["Hívni lehet vele","d"]],"15":[["Szomorúság","r"]],"25":[["Rügyfakadás ideje","d"]],"28":[["Evéshez kell","r"],["Evőeszköz","d"]],"50":[["Időmérő","r"]],"64":[["Füves térség","r"]]},"n":10,"l":42},{"w":7,"h":10,"g":".PILÓTAS......Z..BÉKAA.S...NP.ZÁR.YP.Ő.E.AA.NÉNI.N.Y.D.K.TETŐ.É..G.RÉZ","c":{"0":[["Gépet vezet","r"],["Tisztítószer","d"]],"13":[["Édesanya","d"]],"16":[["Kuruttyol","r"],["Padlóterítő","d"]],"25":[["Közbiztonság őre","d"]],"29":[["Kulcslyuk gazdája","r"]],"43":[["Idős hölgy","r"]],"48":[["Ujjak tartója","d"]],"56":[["Ház teteje","r"]],"66":[["Vörös fém","r"]]},"n":11,"l":42},{"w":7,"h":10,"g":".BAB...C...VASÉ.B..D.K.AJTÓ.L.R.U.TA.L.L.É.KAVICSM.N.P.ZÁ.G.Á.TJ..ANYA","c":{"0":[["Hüvelyes","r"],["Vörös zöldség","d"]],"5":[["Állam bevétele","d"]],"9":[["Üreg a hegyben","d"]],"10":[["Kemény fém","r"]],"18":[["Holland virág","d"]],"22":[["Nyílászáró","r"]],"27":[["Spagetti","d"]],"42":[["Apró kő","r"],["Belső szerv","d"]],"65":[["Édesanya","r"]]},"n":11,"l":42},{"w":7,"h":10,"g":".ASZTALO......R..LIFTR.S..Ü..SZIKLAC.A.I..S.R.R.BO.V.Á.ÉN.ABLAKT.S.Y.A","c":{"0":[["Evéshez kell","r"],["Szaglószerv","d"]],"12":[["Hallószerv","d"]],"16":[["Emelőgép","r"],["Agancsos","d"]],"25":[["Uralkodó","d"]],"28":[["Nagy kőtömb","r"],["Vázelem","d"]],"41":[["Kuruttyol","d"]],"57":[["Üveges nyílás","r"]]},"n":10,"l":42},{"w":7,"h":10,"g":".TÖLGY.G.....RÁ..ALMAZ.S.I.D.SZILVAR.O.I.RA.K.O..J.N.M.VZ.Y...A.KAVICS","c":{"0":[["Makkos fa","r"],["Konyhai fűtőanyag","d"]],"6":[["Sebességmérő","d"]],"11":[["Fehér virág","d"]],"16":[["Piros gyümölcs","r"],["Női ruhadarab","d"]],"28":[["Lekvár alapja","r"],["Vázlat, ábra","d"]],"48":[["Kemény fém","d"]],"63":[["Apró kő","r"]]},"n":10,"l":42},{"w":7,"h":10,"g":".SZEGEDN......Y..BÉKAA.S..Í.K.Z..G..HANGYAZ.R..Ó.E.VAS.AN.A...DE.SZABÓ","c":{"0":[["Tisza-parti város","r"],["Fej alatt van","d"]],"12":[["Csúszómászó","d"]],"16":[["Kuruttyol","r"],["Agancsos","d"]],"35":[["Szorgos rovar","r"],["Hangok művészete","d"]],"48":[["Állam bevétele","d"]],"50":[["Kemény fém","r"]],"64":[["Ruhát varr","r"]]},"n":10,"l":41},{"w":7,"h":10,"g":".MÉZ...M...S.EI.TŰZ.ZS.E.A.ÜK.LAKÁSO.E.Á.TL.FOCI.C.O.S.P.ING..É....PÓK","c":{"0":[["Méhek terméke","r"],["Diósgyőr városa","d"]],"4":[["Konyhafőnök","d"]],"6":[["Fehér nemesfém","d"]],"9":[["Hívni lehet vele","d"]],"15":[["Lángol","r"]],"29":[["Otthon","r"]],"43":[["Labdarúgás","r"]],"48":[["Kenyérsütő","d"]],"56":[["Férfi felsőruha","r"]],"66":[["Hálót sző","r"]]},"n":11,"l":41},{"w":7,"h":10,"g":".LEVEGŐH......E.VONATL...A.EY...D.L..KÖRTEM.I.Á.FÉ.FOG.OH.L...N.HIDEG.","c":{"0":[["Belélegezzük","r"],["Ahol valami van","d"]],"11":[["Lábszárruha","d"]],"13":[["Hívni lehet vele","d"]],"15":[["Sínen közlekedik","r"]],"30":[["Reggeli pékáru","d"]],"35":[["Mézgyártó","d"]],"36":[["Őszi gyümölcs","r"]],"50":[["Rágószerv","r"]],"63":[["Fázunk tőle","r"]]},"n":10,"l":41},{"w":7,"h":10,"g":".KUTYA.S.....SZ...RÉZA...E.OK..ÉNEKÁ.M.D.NC.Á.Ő.YS.TORTA..R..E..FARKAS","c":{"0":[["Ugat","r"],["Konyhafőnök","d"]],"6":[["Női ruhadarab","d"]],"11":[["Közbiztonság őre","d"]],"17":[["Vörös fém","r"]],"30":[["Hangos dal","r"],["Hegységünk","d"]],"47":[["Forró ital","d"]],"50":[["Szülinapi édesség","r"]],"63":[["Falkában él","r"]]},"n":10,"l":41},{"w":7,"h":10,"g":".FOCI..R....H.E....Á.G.POSTAÉ.A.Z.RN.P.APAY.R.K.N.KIRÁLY..K.C...MACSKA","c":{"0":[["Labdarúgás","r"],["Hosszú történet","d"]],"5":[["Gerinc helye","d"]],"16":[["Fűszer, zöldség","d"]],"18":[["Konyhafőnök","d"]],"20":[["Sárga fém","d"]],"22":[["Levélkézbesítő","r"]],"38":[["Édesapa","r"]],"49":[["Uralkodó","r"]],"63":[["Dorombol","r"]]},"n":10,"l":41},{"w":7,"h":10,"g":".TÁNYÉRS......Z.T.B..I.A.A.IL.VÁROSV.A.L.TA.S.A.Á.SZÍN.L.Á..GÓL.LÁB..Ó","c":{"0":[["Étel alja","r"],["Lekvár alapja","d"]],"9":[["Rügyfakadás ideje","d"]],"11":[["Üreg a hegyben","d"]],"20":[["Lovak szállása","d"]],"29":[["Lakott település","r"]],"43":[["Nyakba kötik","d"]],"49":[["Piros vagy kék","r"]],"59":[["Találat a hálóban","r"]],"63":[["Végtag","r"]]},"n":10,"l":41},{"w":7,"h":10,"g":".MEGGY.......E.ŐSZ..S..Z.IDŐ.RIZS..K.L.TŰZÁ.V.Á.OV.ABLAKÉ...L.N.BÍRÓ.I","c":{"0":[["Savanyú gyümölcs","r"]],"6":[["Égi áldás","d"]],"9":[["Lekvár alapja","d"]],"14":[["Szüret évszaka","r"]],"18":[["Lovak szállása","d"]],"24":[["Múlik","r"]],"28":[["Pelyhes köret","r"],["Ébresztő ital","d"]],"34":[["Lábfejre húzzák","d"]],"38":[["Lángol","r"]],"50":[["Üveges nyílás","r"]],"63":[["Ítélkező","r"]]},"n":12,"l":41},{"w":7,"h":10,"g":".SZILVAT......E..OLAJJ.T..D..METRÓ.V.L.E.BA.ERNYŐJ.F.D.R.SOFŐR...N.R..","c":{"0":[["Lekvár alapja","r"],["Tehén adja","d"]],"12":[["Állam bevétele","d"]],"16":[["Zsiradék","r"],["Hívni lehet vele","d"]],"25":[["Közbiztonság őre","d"]],"28":[["Föld alatti vasút","r"],["Kenyérre kenik","d"]],"34":[["Testtakaró","d"]],"43":[["Esőtől véd","r"]],"56":[["Autót vezet","r"]]},"n":11,"l":41},{"w":7,"h":10,"g":".KIRÁLYT......Ű..BÉKAZ.K..O..NÖVÉNYE.N..Y.P.Y..H.E.VIHARR..N....REGÉNY","c":{"0":[["Uralkodó","r"],["Lángol","d"]],"12":[["Főzőhely","d"]],"16":[["Kuruttyol","r"],["Olvasnivaló","d"]],"28":[["Zöld élőlény","r"],["Piros bogyó","d"]],"45":[["Férfi felsőruha","d"]],"50":[["Villámlik benne","r"]],"63":[["Hosszú történet","r"]]},"n":10,"l":41},{"w":7,"h":10,"g":".FELHŐ.F.....GA.MÁTRAL.O.U.LU.Z.L.A.LILIOMÓ...P.BL.F.Á..O.ERNYŐM.J....","c":{"0":[["Esőt hozza","r"],["Kis település","d"]],"6":[["Békemadár","d"]],"9":[["Filmszínház","d"]],"11":[["Holland virág","d"]],"15":[["Hegységünk","r"]],"35":[["Fehér virág","r"],["Nehéz fém","d"]],"44":[["Gondolkodó rész","d"]],"57":[["Esőtől véd","r"]]},"n":10,"l":41},{"w":7,"h":10,"g":".......V.EMBERÍ...É..Z.P.K.S.TAVASZP.P...AE.RADARS.I.I.VT.K.Á.A.FARKAS","c":{"0":[["Folyékony elem","d"]],"4":[["Kuruttyol","d"]],"8":[["Gondolkodó lény","r"]],"16":[["Fűszer, zöldség","d"]],"20":[["Agancsos","d"]],"28":[["Rügyfakadás ideje","r"],["Budával egyesült","d"]],"39":[["Tanuló","d"]],"43":[["Sebességmérő","r"]],"63":[["Falkában él","r"]]},"n":10,"l":41},{"w":7,"h":10,"g":"..ARANY.A......DUNA.S.Ó..S.ZH.RÓZSAÍ.A.T.PR.J.A.P.SZILVA.A....N.SZABÓ.","c":{"1":[["Sárga fém","r"],["Állam bevétele","d"]],"11":[["Evéshez kell","d"]],"13":[["Tisztítószer","d"]],"14":[["Nagy folyónk","r"]],"21":[["Újság tartalma","d"]],"23":[["Vázlat, ábra","d"]],"29":[["Tövises virág","r"]],"43":[["Ragadozó madár","d"]],"49":[["Lekvár alapja","r"]],"63":[["Ruhát varr","r"]]},"n":11,"l":41},{"w":7,"h":10,"g":".ANYA.......M..SZEGED.A...S..S.ÉNEK..M.A.Á.RENDŐRV.G.R.TÍ.G.ÁGYZ.Y.G.A","c":{"0":[["Édesanya","r"]],"5":[["Esti történet","d"]],"8":[["Ragadozó madár","d"]],"14":[["Tisza-parti város","r"]],"25":[["Lábszárruha","d"]],"27":[["Pakli lapja","d"]],"30":[["Hangos dal","r"],["Savanyú gyümölcs","d"]],"42":[["Közbiztonság őre","r"],["Folyékony elem","d"]],"59":[["Alvóbútor","r"]]},"n":11,"l":40},{"w":7,"h":10,"g":".MADÁR.S.....BZ.SAS.OI.Z.ZÁRG.I.A..E.KÖRTET.L.V...TAVASZ.E..S...ADÓ...","c":{"0":[["Szárnyas állat","r"],["Körülvett föld","d"]],"6":[["Szőlő leve","d"]],"9":[["Nagy kőtömb","d"]],"11":[["Agancsos","d"]],"15":[["Ragadozó madár","r"]],"24":[["Kulcslyuk gazdája","r"]],"36":[["Őszi gyümölcs","r"]],"43":[["Forró ital","d"]],"49":[["Rügyfakadás ideje","r"]],"63":[["Állam bevétele","r"]]},"n":11,"l":40},{"w":7,"h":10,"g":".MÓKUS.S.....EA.RÉTESJ.E...ŐT.G..I..LÉPCSŐ..N..K..GYOMOR.Á...L..Z.OLAJ","c":{"0":[["Fán élő rágcsáló","r"],["Ementáli","d"]],"6":[["Égi áldás","d"]],"9":[["Hosszú történet","d"]],"15":[["Töltött tészta","r"]],"26":[["Tanulás helye","d"]],"35":[["Fokok sora","r"]],"43":[["Konyhai fűtőanyag","d"]],"49":[["Emésztőszerv","r"]],"65":[["Zsiradék","r"]]},"n":10,"l":40},{"w":7,"h":10,"g":".RADAR.......TR.CSIGAI..Z..VZ.GOMBAS..K..S.TÁNC.ZL..Y.Z.Á.KABÁTB....R.","c":{"0":[["Sebességmérő","r"]],"6":[["Rügyfakadás ideje","d"]],"7":[["Pelyhes köret","d"]],"10":[["Női ruhadarab","d"]],"15":[["Házat hord","r"]],"29":[["Erdei termés","r"]],"42":[["Ritmikus mozgás","r"],["Végtag","d"]],"47":[["Kulcslyuk gazdája","d"]],"57":[["Felsőruha","r"]]},"n":10,"l":40},{"w":7,"h":10,"g":".JÉG...E...BABS..F..AŐ.MOTOR.A.R..L.SZILVA.Z.N..N.TETŐ.G.A......LILIOM","c":{"0":[["Fagyott víz","r"],["Égi áldás","d"]],"6":[["Üreg a hegyben","d"]],"10":[["Hüvelyes","r"],["Magyar valuta","d"]],"22":[["Hajtómű","r"],["Evéshez kell","d"]],"35":[["Lekvár alapja","r"]],"49":[["Ház teteje","r"]],"63":[["Fehér virág","r"]]},"n":10,"l":40},{"w":7,"h":10,"g":".KÉS...C...LAPI.A..P.P.BÉKA.Ő.L.E.T.MACSKA..K.Z.V.Á..T.A.GULYÁS.Y..Ű.Z","c":{"0":[["Vágóeszköz","r"],["Lábbeli","d"]],"5":[["Édesapa","d"]],"9":[["Üveges nyílás","d"]],"10":[["Papírdarab","r"]],"18":[["Kézmelegítő","d"]],"22":[["Kuruttyol","r"]],"27":[["Rügyfakadás ideje","d"]],"35":[["Dorombol","r"]],"43":[["Alvóbútor","d"]],"56":[["Magyar étel","r"]]},"n":11,"l":40},{"w":7,"h":10,"g":".UJJ...N...I.PÖ.MUNKAV...G.PÉ.....RN.KIFLIY.É...K.SZIKLA.Ö..Á...RENDŐR","c":{"0":[["Kézen nő","r"],["Zöld élőlény","d"]],"4":[["Férfi felsőruha","d"]],"6":[["Fűszer, zöldség","d"]],"15":[["Dolgozni kell","r"]],"30":[["Ujjak tartója","d"]],"36":[["Reggeli pékáru","r"]],"43":[["Habos ital","d"]],"46":[["Fürdőhely","d"]],"49":[["Nagy kőtömb","r"]],"63":[["Közbiztonság őre","r"]]},"n":11,"l":40}];
+var rj={},rjJson="",rjLast=0,rjSel=-1,rjDir="r",rjPid=-1,rjP=null,rjWords=[],rjCw=[],rjCheck=0;
+function rjE(i){return document.getElementById(i)}
+function rjNorm(c){return String(c).toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"")}
+function rjBuild(pid){
+  rjP=RJP[pid];rjPid=pid;rjWords=[];rjCw=[];var W=rjP.w,H=rjP.h,i;
+  for(i=0;i<W*H;i++)rjCw.push({});
+  Object.keys(rjP.c).forEach(function(ks){var k=+ks;rjP.c[ks].forEach(function(cl){
+    var dir=cl[1],st=dir==="r"?k+1:k+W,step=dir==="r"?1:W,cells=[],q=st;
+    while(q<W*H&&rjP.g.charAt(q)!=="."&&(dir==="d"||Math.floor(q/W)===Math.floor(st/W))){cells.push(q);q+=step}
+    if(cells.length<2)return;
+    var id=rjWords.length;rjWords.push({cells:cells,dir:dir,clue:cl[0],clueCell:k});
+    cells.forEach(function(c){rjCw[c][dir]=id})})});
+  rjSel=-1;rjDir="r";
+  for(i=0;i<W*H;i++)if(rjP.g.charAt(i)!=="."){rjSel=i;rjDir=rjCw[i].r!=null?"r":"d";break}
+}
+function rjVal(k){var c=rj.cells&&rj.cells[k];return c?String(c):""}
+function rjPut(k,ch){
+  rj.cells=rj.cells||{};rjLast=Date.now();
+  if(ch){rj.cells[k]=ch+me;remote("PUT","rj/cells/"+k,ch+me).catch(function(){})}
+  else{delete rj.cells[k];remote("DELETE","rj/cells/"+k).catch(function(){})}}
+function rjWordOf(k,d){var w=rjCw[k]&&rjCw[k][d];return w==null?null:rjWords[w]}
+function rjStep(dlt){var w=rjWordOf(rjSel,rjDir);if(!w)return false;var i=w.cells.indexOf(rjSel)+dlt;
+  if(i<0||i>=w.cells.length)return false;rjSel=w.cells[i];return true}
+function rjType(ch){if(rjSel<0||!rjP)return;rjPut(rjSel,ch.toUpperCase());rjStep(1);renderRJ()}
+function rjBack(){if(rjSel<0||!rjP)return;
+  if(rjVal(rjSel)){rjPut(rjSel,"")}else if(rjStep(-1)){rjPut(rjSel,"")}renderRJ()}
+function rjDone(){if(!rjP)return false;for(var i=0;i<rjP.g.length;i++){var s=rjP.g.charAt(i);if(s===".")continue;
+  var v=rjVal(i);if(!v||rjNorm(v.charAt(0))!==rjNorm(s))return false}return true}
+function rjMove(dr,dc){if(rjSel<0)return;var W=rjP.w,H=rjP.h,r=Math.floor(rjSel/W)+dr,c=rjSel%W+dc;
+  while(r>=0&&r<H&&c>=0&&c<W){var k=r*W+c;if(rjP.g.charAt(k)!=="."){rjSel=k;if(!rjCw[k][rjDir])rjDir=rjDir==="r"?"d":"r";renderRJ();return}r+=dr;c+=dc}}
+function renderRJ(){
+  var box=rjE("rjbox");if(!box)return;
+  if(!base){box.innerHTML='<div class="stat">Kapcsolódás a közös adatbázishoz…</div>';return}
+  var pid=(rj.cur||0)%RJP.length;if(pid!==rjPid)rjBuild(pid);
+  var W=rjP.w,H=rjP.h,g=rjP.g,sw=rjWordOf(rjSel,rjDir),inW={},h="",i;
+  if(sw)sw.cells.forEach(function(c){inW[c]=1});
+  var chk=rjCheck>Date.now();
+  for(i=0;i<W*H;i++){
+    if(rjP.c[i]){var cl=rjP.c[i],one=cl.length===1;
+      h+='<div class="rk" data-i="'+i+'">'+cl.map(function(x,j){
+        return '<div class="rt'+(one?" o":j?" b2":" a2")+'"><span>'+esc(x[0])+'</span><i class="'+x[1]+'">'+(x[1]==="r"?"▶":"▼")+'</i></div>'}).join("")+'</div>'}
+    else if(g.charAt(i)==="."){h+='<div class="rb"></div>'}
+    else{var v=rjVal(i),cls="rl"+(i===rjSel?" sel":inW[i]?" wd":"");
+      if(chk&&v&&rjNorm(v.charAt(0))!==rjNorm(g.charAt(i)))cls+=" bad";
+      h+='<div class="'+cls+'" data-i="'+i+'"><span class="rv p'+(v.charAt(1)||"a")+'">'+esc(v.charAt(0))+'</span></div>'}
+  }
+  var done=rjDone(),bn=done?'🎉 Kész! Megfejtettétek a rejtvényt!':sw?(sw.dir==="r"?"➡ ":"⬇ ")+esc(sw.clue):"Koppints egy mezőre!";
+  box.innerHTML='<div class="ans rjbn" style="text-align:center;font-weight:700">'+bn+'</div><div class="rjg" id="rjg" style="grid-template-columns:repeat('+W+',1fr)">'+h+'</div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:10px"><button class="chip" id="rjchk">✔ Ellenőrzés</button><button class="chip" id="rjhint">💡 Betű felfedése</button><button class="'+(done?"save":"chip")+'" id="rjnext" '+(done?'style="width:auto;padding:8px 16px"':"")+'>'+(done?"Következő rejtvény ➡":"⏭ Másik rejtvény")+'</button></div>';
+  rjE("rjnote").textContent=(pid+1)+". rejtvény / "+RJP.length+" · Filius = rózsaszín, Réka = kék betűk";
+  rjE("rjg").onclick=function(ev){var t=ev.target.closest&&ev.target.closest("[data-i]");if(!t)return;var k=+t.dataset.i;
+    if(rjP.c[k]){var cl=rjP.c[k],j=0;if(cl.length>1){var r=t.getBoundingClientRect();j=ev.clientY-r.top>r.height/2?1:0}
+      var d=cl[j][1],w=rjWords[rjCw[d==="r"?k+1:k+W][d]];if(!w)return;rjSel=w.cells[0];rjDir=w.dir}
+    else{if(k===rjSel){var o=rjDir==="r"?"d":"r";if(rjCw[k][o]!=null)rjDir=o}
+      else{if(rjCw[k][rjDir]==null)rjDir=rjDir==="r"?"d":"r";rjSel=k}}
+    rjFocus();renderRJ()};
+  rjE("rjchk").onclick=function(){rjCheck=Date.now()+4000;renderRJ();setTimeout(renderRJ,4100)};
+  rjE("rjhint").onclick=function(){if(rjSel<0)return;rjPut(rjSel,g.charAt(rjSel));rjStep(1);renderRJ()};
+  rjE("rjnext").onclick=function(){if(!done&&!confirm("Biztosan másik rejtvényt kérsz? Ez a kitöltés elvész."))return;
+    var n=(pid+1)%RJP.length;rj={cur:n,cells:{}};rjLast=Date.now();remote("PUT","rj",{cur:n}).catch(function(){});renderRJ()};
+}
+function rjFocus(){var i=rjE("rjin");try{i.value="​";i.focus({preventScroll:true})}catch(e){}}
+(function(){var i=rjE("rjin");if(!i)return;
+  i.oninput=function(){var v=i.value;i.value="​";if(!v){rjBack();return}
+    v.replace(/​/g,"").split("").forEach(function(ch){if(/[A-Za-zÁÉÍÓÖŐÚÜŰáéíóöőúüű]/.test(ch))rjType(ch)})};
+  i.onkeydown=function(e){var k=e.key;
+    if(k==="Backspace"){e.preventDefault();rjBack()}
+    else if(k==="ArrowRight")rjMove(0,1);else if(k==="ArrowLeft")rjMove(0,-1);
+    else if(k==="ArrowDown")rjMove(1,0);else if(k==="ArrowUp")rjMove(-1,0)}})();
+function pollRJ(){
+  if(!base)return;
+  fetch(base+"/rj.json").then(function(r){return r.json()}).then(function(d){
+    if(Date.now()-rjLast<1500)return;d=d||{};var j=JSON.stringify(d);if(j===rjJson)return;rjJson=j;rj=d;
+    if(!rjE("g-x").hidden&&!document.hidden)renderRJ()}).catch(function(){})}
+
 // Közös szinkron (Firebase Realtime Database, REST)
 var CANDS=["https://retekreka-e08e5-default-rtdb.europe-west1.firebasedatabase.app"];
 var note=document.getElementById("syncnote"),lastJson="";
@@ -1152,7 +1250,7 @@ function findBase(i){
   var ac=new AbortController(),to=setTimeout(function(){ac.abort()},7000);
   fetch(CANDS[i]+"/state.json",{signal:ac.signal}).then(function(r){
     clearTimeout(to);if(!r.ok)throw 0;return r.json()
-  }).then(function(){base=CANDS[i];spData();setInterval(spData,5000);cleanup();pull();setInterval(pull,2000);pollQa();setInterval(pollQa,3000);pollGame();setInterval(pollGame,2000);pollF();setInterval(pollF,4000);pollEv();setInterval(pollEv,3000);pollRd();setInterval(pollRd,3000);pollCook();setInterval(pollCook,3000);pollC4();setInterval(pollC4,1500);pollBS();setInterval(pollBS,1500)}).catch(function(){clearTimeout(to);findBase(i+1)});
+  }).then(function(){base=CANDS[i];spData();setInterval(spData,5000);cleanup();pull();setInterval(pull,2000);pollQa();setInterval(pollQa,3000);pollGame();setInterval(pollGame,2000);pollF();setInterval(pollF,4000);pollEv();setInterval(pollEv,3000);pollRd();setInterval(pollRd,3000);pollCook();setInterval(pollCook,3000);pollC4();setInterval(pollC4,1500);pollBS();setInterval(pollBS,1500);pollRJ();setInterval(pollRJ,2000)}).catch(function(){clearTimeout(to);findBase(i+1)});
 }
 findBase(0);
 })();
