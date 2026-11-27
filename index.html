@@ -552,37 +552,41 @@ function notifyMe(t,b){
       navigator.serviceWorker.getRegistration().then(function(r){if(r&&r.showNotification)r.showNotification(t,{body:b,vibrate:[200,100,200],tag:"retek-near"});else plain()}).catch(plain)}
     else plain()}}catch(e){}
   try{if(navigator.vibrate)navigator.vibrate([200,100,200])}catch(e){}}
-// Háttér-értesítés (ntfy időzített kézbesítés): a 35%-ot elérő szív akkor is jelez, ha az app zárva van
+// Háttér-értesítés (ntfy időzített kézbesítés): 45%-nál, majd minden további 5%-nál jelez, akkor is, ha az app zárva van
+var NTH=[45,40,35,30,25,20,15,10,5];
 function ntTopic(){try{return me&&localStorage.getItem("rr_ntfy_"+me)}catch(e){return null}}
 function ntUI(){var b=document.getElementById("ntfybtn");b.hidden=!me;b.textContent=ntTopic()?"✅ Háttér-értesítés be (kikapcsolás)":"📲 Értesítés akkor is, ha zárva az app"}
+function ntUrl(tp,t){return "https://ntfy.sh/"+tp+"/rr-"+me+"-"+t}
 function schedNear(){
   var tp=ntTopic();if(!tp)return;
-  var sk="rr_ns_"+me,u="https://ntfy.sh/"+tp+"/rr-near-"+me,old=null,now=Date.now();
-  try{old=JSON.parse(localStorage.getItem(sk)||"null")}catch(e){}
-  if(old&&old.at<now){old=null;try{localStorage.removeItem(sk)}catch(e){}}
-  var sl=state.sleep&&state.sleep[me],asleep=!!(sl&&sl.s&&!sl.w),v=eff(me),at=0;
-  if(!asleep&&v>35){at=now+(v-35)/5*36e5;if(at-now<15e3||at-now>71*36e5)at=0}
-  if(!old&&!at)return;if(old&&at&&Math.abs(old.at-at)<9e4)return;
-  var go=function(){if(!at){try{localStorage.removeItem(sk)}catch(e){}return}
-    fetch(u,{method:"POST",headers:{Delay:Math.round((at-Date.now())/1000)+"s",Title:"RetekReka",Tags:"broken_heart"},body:"El ne felejts teljesen! 💔 A szíved elérte a 35%-ot."})
-      .then(function(r){if(r.ok)try{localStorage.setItem(sk,JSON.stringify({at:at}))}catch(e){}}).catch(function(){})};
-  if(old)fetch(u,{method:"DELETE"}).then(go,go);else go()}
+  var sk="rr_ns2_"+me,have={},now=Date.now();
+  try{have=JSON.parse(localStorage.getItem(sk)||"{}")||{}}catch(e){}
+  Object.keys(have).forEach(function(t){if(have[t]<now)delete have[t]});
+  var sl=state.sleep&&state.sleep[me],asleep=!!(sl&&sl.s&&!sl.w),v=eff(me),want={};
+  if(!asleep)NTH.forEach(function(t){if(v>t){var at=now+(v-t)/5*36e5;if(at-now>=15e3&&at-now<71*36e5)want[t]=at}});
+  var next=JSON.parse(JSON.stringify(have)),save=function(){try{localStorage.setItem(sk,JSON.stringify(next))}catch(e){}};
+  NTH.forEach(function(t){
+    var h=have[t],w=want[t];if(!h&&!w)return;if(h&&w&&Math.abs(h-w)<9e4)return;
+    var post=function(){if(!w){delete next[t];save();return}
+      fetch(ntUrl(tp,t),{method:"POST",headers:{Delay:Math.round((w-Date.now())/1000)+"s",Title:"RetekReka",Tags:"broken_heart"},body:"A szíved elérte a "+t+"%-ot. El ne felejts teljesen! 💔"})
+        .then(function(r){if(r.ok){next[t]=w;save()}}).catch(function(){})};
+    if(h){delete next[t];save();fetch(ntUrl(tp,t),{method:"DELETE"}).then(post,post)}else post()})}
 document.getElementById("ntfybtn").onclick=function(){
   if(!me)return;var tp=ntTopic();
-  if(tp){if(confirm("Kikapcsolod a háttér-értesítést?")){fetch("https://ntfy.sh/"+tp+"/rr-near-"+me,{method:"DELETE"}).catch(function(){});try{localStorage.removeItem("rr_ntfy_"+me);localStorage.removeItem("rr_ns_"+me)}catch(e){}}ntUI();return}
+  if(tp){if(confirm("Kikapcsolod a háttér-értesítést?")){NTH.forEach(function(t){fetch(ntUrl(tp,t),{method:"DELETE"}).catch(function(){})});try{localStorage.removeItem("rr_ntfy_"+me);localStorage.removeItem("rr_ns2_"+me)}catch(e){}}ntUI();return}
   var a=new Uint8Array(8);crypto.getRandomValues(a);tp="retekreka-"+me+"-"+Array.prototype.map.call(a,function(x){return("0"+x.toString(16)).slice(-2)}).join("");
   try{localStorage.setItem("rr_ntfy_"+me,tp)}catch(e){}
   fetch("https://ntfy.sh/"+tp,{method:"POST",headers:{Title:"RetekReka"},body:"Működik! 💞 Ha ezt látod, a háttér-értesítés be van állítva."}).catch(function(){});
-  prompt("1) Telepítsd az ntfy appot (Android / iPhone)\n2) Az appban iratkozz fel erre a témára (másold ki):\n3) Kapsz egy tesztüzenetet. Ezután a 35%-os jelzés akkor is megjön, ha az app zárva van.",tp);
+  prompt("1) Telepítsd az ntfy appot (Android / iPhone)\n2) Az appban iratkozz fel erre a témára (másold ki):\n3) Kapsz egy tesztüzenetet. Ezután a szíved 45%-nál, majd minden további 5%-nál jelezni fog akkor is, ha az app zárva van.",tp);
   ntUI();checkNear()};
 function checkNear(){
   var nb=document.getElementById("notifbtn");
   nb.hidden=!("Notification" in window)||Notification.permission!=="default";
   var ban=document.getElementById("nearbanner");ntUI();if(!me){ban.hidden=true;return}schedNear();
-  var v=eff(me),near=v>=30&&v<=35,fk="rr_nt_"+me;ban.hidden=!near;
-  if(v>35){try{localStorage.removeItem(fk)}catch(e){}return}
-  if(near){var done=null;try{done=localStorage.getItem(fk)}catch(e){}
-    if(done!=="1"){try{localStorage.setItem(fk,"1")}catch(e){}if(!ntTopic())notifyMe("RetekRéka ❤","El ne felejts teljesen! 💔")}}
+  var v=eff(me),fk="rr_nt2_"+me;ban.hidden=!(v>0&&v<=45);
+  if(v>45){try{localStorage.removeItem(fk)}catch(e){}return}
+  if(v>0){var cur=Math.min.apply(null,NTH.filter(function(x){return v<=x})),last=99;try{last=+(localStorage.getItem(fk)||99)}catch(e){}
+    if(cur<last){try{localStorage.setItem(fk,cur)}catch(e){}if(!ntTopic())notifyMe("RetekRéka ❤","A szíved "+Math.round(v)+"%-on van. El ne felejts teljesen! 💔")}}
 }
 document.getElementById("notifbtn").onclick=function(){
   try{Notification.requestPermission().then(function(){checkNear()})}catch(e){}};
