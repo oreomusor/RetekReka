@@ -72,6 +72,7 @@ body{transition:background .6s}
 #rjin{position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;border:0;padding:0;font-size:16px}
 #g-x .card{padding:10px}
 .wb{display:block;width:100%;text-align:left;border:2px solid var(--soft);background:var(--bg);color:var(--tx);border-radius:16px;padding:14px;margin:8px 0;font:inherit;font-size:1rem;cursor:pointer}.wb.sel{background:var(--pink);border-color:var(--pink);color:#fff}.wbd{display:inline-block;margin:6px 6px 0 0;padding:2px 8px;border-radius:999px;font-size:.75rem;color:#000}
+.uc{width:52px;height:78px;border-radius:10px;border:3px solid #fff;font-weight:800;font-size:1.15rem;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3);cursor:pointer;padding:0;line-height:1.1}.uc.dim{opacity:.4}.uc.usel{transform:translateY(-10px);outline:3px solid var(--pink)}.uc.big{width:72px;height:108px;font-size:1.7rem}.ucw{background:linear-gradient(135deg,#e53935 25%,#fdd835 25% 50%,#43a047 50% 75%,#1e88e5 75%)}
 </style>
 </head>
 <body>
@@ -198,7 +199,7 @@ body{transition:background .6s}
   </section>
 </div>
 <div id="tab-g" hidden>
-  <div class="who" id="gsub"><button class="pill sel" data-g="w">Szójáték</button><button class="pill" data-g="c">Connect 4</button><button class="pill" data-g="b">Torpedó</button><button class="pill" data-g="r">🏎 Autó</button><button class="pill" data-g="x">🧩 Rejtvény</button></div>
+  <div class="who" id="gsub"><button class="pill sel" data-g="w">Szójáték</button><button class="pill" data-g="c">Connect 4</button><button class="pill" data-g="b">Torpedó</button><button class="pill" data-g="r">🏎 Autó</button><button class="pill" data-g="u">🃏 UNO</button><button class="pill" data-g="x">🧩 Rejtvény</button></div>
   <div id="g-w">
   <section class="card">
     <h2>Szójáték</h2>
@@ -224,6 +225,13 @@ body{transition:background .6s}
     <div id="bsctl"></div>
     <div class="note" id="bsscore"></div>
     <div class="note">Mindketten elhelyeztek 5 hajót (5, 4, 3, 3 és 2 mező hosszút). Felváltva lőttök a másik vizére. Aki előbb elsüllyeszti az összes hajót, nyer. ✖ = találat, • = mellé.</div>
+  </section>
+  </div>
+  <div id="g-u" hidden>
+  <section class="card">
+    <h2>UNO 🃏</h2>
+    <div id="uno-box"></div>
+    <div class="note">Szabályok: színre vagy számra/jelre rakhatsz, a színválasztót és a +4-et bármikor. Egyszerre bármennyi lapot letehetsz, ha ugyanaz a szám vagy jel (koppints többre, aztán „Lerak"). Kimaradás és megfordítás: újra te jössz. A +2 és +4 összeadódik: a +2-re +2 és +4 is jöhet, a +4-re +4 bármikor, +2 pedig csak abban a színben, amit a +4-es kért. Ha nem tudsz rátenni, húzod az egész összeget, és vége a körödnek. Ha nincs mit rakni, húzol egy lapot, és automatikusan a másik jön. Ha valaki az utolsó lapját +2/+4-gyel rakja le, a másik még rátehet, és akkor a kiment játékosnak kell húznia. UNO-t kell mondani, ha egy lapod marad (2 lapnál előre is megnyomhatod), különben a másik elkaphat: +2 lap.</div>
   </section>
   </div>
   <div id="g-r" hidden>
@@ -497,7 +505,7 @@ function renderMood(){
   document.getElementById("mnow").innerHTML=h;
   document.getElementById("mhint").textContent=me?"":"Válaszd ki felül, hogy ki vagy.";
 }
-document.querySelectorAll(".gbtn").forEach(function(b){b.onclick=function(){me=b.dataset.k;renderWho();renderMeters();renderQ()}});
+document.querySelectorAll(".gbtn").forEach(function(b){b.onclick=function(){me=b.dataset.k;renderWho();renderMeters();renderQ();moodPeek()}});
 function fd(ms,ago){var h=ms/3.6e6;if(h<1){var m=Math.max(1,Math.round(ms/6e4));return m+(ago?" perce":" percet")}
   return String(Math.round(h*2)/2).replace(".",",")+(ago?" órája":" órát")}
 function sleepSave(){try{localStorage.setItem("rr_state",JSON.stringify(state))}catch(e){}}
@@ -774,8 +782,8 @@ function pollC4(){
 }
 document.querySelectorAll("#gsub .pill").forEach(function(b){b.onclick=function(){
   document.querySelectorAll("#gsub .pill").forEach(function(x){x.className="pill"+(x===b?" sel":"")});
-  ["w","c","b","r","x"].forEach(function(t){document.getElementById("g-"+t).hidden=b.dataset.g!==t});
-  if(b.dataset.g==="c")renderC4();else if(b.dataset.g==="b")renderBS();else if(b.dataset.g==="r")CAR.open();else if(b.dataset.g==="x")renderRJ();else renderG()}});
+  ["w","c","b","r","x","u"].forEach(function(t){document.getElementById("g-"+t).hidden=b.dataset.g!==t});
+  if(b.dataset.g==="c")renderC4();else if(b.dataset.g==="b")renderBS();else if(b.dataset.g==="r")CAR.open();else if(b.dataset.g==="x")renderRJ();else if(b.dataset.g==="u")UNO.open();else renderG()}});
 renderC4();
 var bs={},bsJson="",bsLast=0,bsMine="",BSN=[5,4,3,3,2];
 function ask80(k,val){
@@ -1325,6 +1333,92 @@ document.querySelectorAll("#qsub .pill").forEach(function(b){b.onclick=function(
   document.getElementById("q-d").hidden=wm!=="d";document.getElementById("q-w").hidden=wm==="d";
   if(wm==="d")renderQ();else{renderW();pollW()}}});
 setInterval(pollW,1500);
+// UNO (2 játékos, saját szabályokkal: több lap egyszerre, összeadódó +2/+4, +4 bármikor)
+var UNO=(function(){
+var $=function(i){return document.getElementById(i)},S={},pw=null,sel=[];
+var CL={R:"#e53935",G:"#43a047",B:"#1e88e5",Y:"#fdd835"},CN={R:"piros",G:"zöld",B:"kék",Y:"sárga"};
+function deck(){var d=[];"RGBY".split("").forEach(function(c){d.push(c+"0");"123456789SV+".split("").forEach(function(v){d.push(c+v,c+v)})});for(var i=0;i<4;i++)d.push("W","X");return d}
+function shuf(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function wild(c){return c[0]==="W"||c[0]==="X"}
+function key(c){return wild(c)?c:c.slice(1)}
+function lab(c){var v=c.slice(1);return c==="W"?"🌈":c==="X"?"+4":v==="S"?"⊘":v==="V"?"⇄":v==="+"?"+2":v}
+function legal(c){var t=S.disc[S.disc.length-1];
+  if(S.pend>0)return c==="X"||(key(c)==="+"&&(key(t)==="+"||c[0]===S.col));
+  return wild(c)||c[0]===S.col||(!wild(t)&&key(c)===key(t))}
+function opp(){return me==="a"?"b":"a"}
+function norm(d){d.deck=d.deck||[];d.disc=d.disc||[];d.hands=d.hands||{};d.hands.a=d.hands.a||[];d.hands.b=d.hands.b||[];d.wins=d.wins||{};d.wins.a=d.wins.a||0;d.wins.b=d.wins.b||0;d.uno=d.uno||{};d.pend=d.pend||0;return d}
+function draw(n,who){var h=S.hands[who];if(S.uno)delete S.uno[who];
+  for(var i=0;i<n;i++){if(!S.deck.length){var top=S.disc.pop();S.deck=shuf(S.disc);S.disc=[top];if(!S.deck.length)break}h.push(S.deck.pop())}}
+function put(){S.v=(S.v||0)+1;if(base)remote("PUT","uno",S).catch(function(){});render()}
+function deal(){
+  if(!me)return;var d=shuf(deck()),h={a:d.splice(0,7),b:d.splice(0,7)},t,o=opp();
+  do{t=d.pop();if(wild(t))d.unshift(t)}while(wild(t));
+  S={deck:d,disc:[t],hands:h,col:t[0],turn:o,pend:0,uno:{},pu:null,out:null,winner:null,wins:S.wins||{a:0,b:0},v:S.v||0,msg:NAMES[me]+" kiosztotta a lapokat"};
+  var v=t.slice(1);sel=[];pw=null;
+  if(v==="S"||v==="V"){S.turn=me;S.msg+=" · "+NAMES[o]+" kimarad"}else if(v==="+"){S.pend=2;S.msg+=" · "+NAMES[o]+": húzz 2-t, vagy tegyél rá +2/+4-et"}
+  put()}
+function play(ix,col){
+  if(S.turn!==me||S.winner)return;var h=S.hands[me],o=opp(),cs=ix.map(function(i){return h[i]});
+  if(!legal(cs[0]))return;var k=key(cs[0]);if(cs.some(function(c){return key(c)!==k}))return;
+  ix.slice().sort(function(a,b){return b-a}).forEach(function(i){h.splice(i,1)});
+  cs.forEach(function(c){S.disc.push(c)});var c=cs[cs.length-1],n=cs.length,out=S.out,stay=false;
+  S.col=wild(c)?col:c[0];S.pu=null;S.out=null;
+  var msg=NAMES[me]+": "+(n>1?n+"× ":"")+(wild(c)?(k==="X"?"+4, ":"színkérés, ")+CN[col]:CN[c[0]]+" "+lab(c));
+  if(k==="+")S.pend=(S.pend||0)+2*n;else if(k==="X")S.pend=(S.pend||0)+4*n;else if(k==="S"||k==="V")stay=true;
+  if(out){draw(S.pend,out);msg+=" · "+NAMES[out]+" húz "+S.pend+" lapot, a játék megy tovább";S.pend=0;S.turn=me;
+    if(!h.length){S.winner=me;S.wins[me]++;msg+=" · 🏆 "+NAMES[me]+" nyert!"}}
+  else if(!h.length){
+    if((k==="+"||k==="X")&&S.hands[o].some(legal)){S.out=me;S.turn=o;msg+=" · "+NAMES[o]+" még rátehet +2/+4-et, különben "+NAMES[me]+" nyert!"}
+    else{S.winner=me;S.wins[me]++;msg+=" · 🏆 "+NAMES[me]+" nyert!"}}
+  else{if(h.length===1){if(!S.uno[me])S.pu=me}else delete S.uno[me];S.turn=stay?me:o}
+  S.msg=msg;sel=[];pw=null;put()}
+function drawCard(){
+  if(S.turn!==me||S.winner)return;var n=S.pend>0?S.pend:1;draw(n,me);S.pend=0;S.pu=null;
+  if(S.out){S.winner=S.out;S.wins[S.out]++;S.msg=NAMES[me]+" húzott "+n+" lapot · 🏆 "+NAMES[S.out]+" nyert!";S.out=null}
+  else{S.turn=opp();S.msg=NAMES[me]+" húzott "+n+" lapot"}
+  sel=[];put()}
+function uno(){S.uno=S.uno||{};S.uno[me]=true;if(S.pu===me)S.pu=null;S.msg=NAMES[me]+": UNO! 🔔";put()}
+function catchU(){var t=S.pu;if(!t||t===me)return;draw(2,t);S.pu=null;S.msg="Elkapva! "+NAMES[t]+" nem mondta, hogy UNO: +2 lap";put()}
+function go(ix){var h=S.hands[me];if(!legal(h[ix[0]]))return;if(wild(h[ix[0]])){pw=ix.slice();render()}else play(ix)}
+function tap(i){
+  var h=S.hands[me];if(S.turn!==me||S.winner)return;var p=sel.indexOf(i);
+  if(p>=0){sel.splice(p,1);render();return}
+  if(sel.length){if(key(h[i])===key(h[sel[0]])){sel.push(i);render()}return}
+  if(!legal(h[i]))return;
+  if(h.filter(function(c){return key(c)===key(h[i])}).length>1){sel=[i];render()}else go([i])}
+function cardH(c,cls,extra){var bg=wild(c)?"":"background:"+CL[c[0]]+";"+(c[0]==="Y"?"color:#333;":"");return '<button class="uc '+(wild(c)?"ucw ":"")+cls+'" style="'+bg+'" '+extra+">"+lab(c)+"</button>"}
+function render(){
+  var box=$("uno-box");if(!box)return;
+  if(!me){box.innerHTML='<div class="stat">Válaszd ki a főoldalon, hogy ki vagy.</div>';return}
+  var w=S.wins||{a:0,b:0},x='<div class="stat">'+NAMES.a+" "+(w.a||0)+" – "+(w.b||0)+" "+NAMES.b+"</div>";
+  if(!S.disc||!S.disc.length){box.innerHTML=x+'<button class="save" id="u-new">🃏 Új játék indítása</button>';return}
+  var o=opp(),h=S.hands[me],oh=S.hands[o],t=S.disc[S.disc.length-1],my=S.turn===me&&!S.winner,pd=S.pend||0;
+  sel=sel.filter(function(i){return i<h.length});
+  x+='<div class="stat">'+NAMES[o]+" lapjai: "+oh.length+" "+"🂠".repeat(Math.min(oh.length,14))+"</div>";
+  x+='<div style="display:flex;gap:18px;justify-content:center;align-items:center;margin:10px 0"><button class="uc" id="u-draw" style="background:#222;font-size:.8rem'+(my?"":";opacity:.5")+'">'+(pd&&my?"HÚZ<br>+"+pd:"HÚZÁS<br>"+S.deck.length)+"</button>"+cardH(t,"big","disabled")+'<div style="width:26px;height:26px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px #888;background:'+CL[S.col]+'" title="Aktuális szín"></div></div>';
+  x+='<div class="stat"><b>'+esc(S.msg||"")+"</b></div>";
+  if(S.winner)x+='<div class="msg">🏆 '+NAMES[S.winner]+' nyert!</div><button class="save" id="u-new">🃏 Új játék</button>';
+  else x+='<div class="stat">'+(my?(pd?"⚠ "+pd+" lapot kell húznod, vagy rátehetsz +2/+4-et":"Te jössz!"):NAMES[o]+" jön…")+"</div>";
+  if(pw)x+='<div style="display:flex;gap:8px;justify-content:center;margin:8px 0">'+"RGBY".split("").map(function(c){return '<button class="uc" data-c="'+c+'" style="background:'+CL[c]+';height:46px;width:58px'+(c==="Y"?";color:#333":"")+'">'+CN[c]+"</button>"}).join("")+"</div>";
+  x+='<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:12px 0">';
+  h.forEach(function(c,i){var ins=sel.indexOf(i)>=0,can=my&&(sel.length?key(c)===key(h[sel[0]]):legal(c));x+=cardH(c,(can?"":"dim ")+(ins?"usel":""),'data-i="'+i+'"')});
+  x+='</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">';
+  if(sel.length)x+='<button class="chip" id="u-go">✅ Lerak ('+sel.length+')</button><button class="chip" id="u-clr">Mégse</button>';
+  if(!S.winner&&h.length<=2)x+='<button class="chip" id="u-uno">UNO! 🔔</button>';
+  if(S.pu&&S.pu!==me&&!S.winner)x+='<button class="chip" id="u-catch">Nem mondta UNO-t! +2</button>';
+  box.innerHTML=x+"</div>"}
+$("uno-box").onclick=function(e){
+  var b=e.target.closest("button");if(!b||!me||b.disabled)return;var id=b.id;
+  if(id==="u-new")deal();else if(id==="u-draw")drawCard();else if(id==="u-uno")uno();else if(id==="u-catch")catchU();
+  else if(id==="u-clr"){sel=[];pw=null;render()}else if(id==="u-go")go(sel.slice());
+  else if(b.dataset.c){var ix=pw;pw=null;if(ix)play(ix,b.dataset.c)}
+  else if(b.dataset.i!==undefined&&!b.classList.contains("dim"))tap(+b.dataset.i)};
+function poll(){
+  if(!base||$("g-u").hidden||$("tab-g").hidden)return;
+  fetch(base+"/uno.json").then(function(r){return r.json()}).then(function(d){if(!d)return;d=norm(d);if((d.v||0)>(S.v||0)){S=d;pw=null;sel=[];render()}}).catch(function(){})}
+setInterval(poll,1000);
+return{open:function(){poll();render()},T:function(){return{S:function(){return S},deal:deal,play:play,drawCard:drawCard,legal:legal,key:key,wild:wild,set:function(x){S=x}}}}}
+)();
 // Közös szinkron (Firebase Realtime Database, REST)
 var CANDS=["https://retekreka-e08e5-default-rtdb.europe-west1.firebasedatabase.app"];
 var note=document.getElementById("syncnote"),lastJson="";
@@ -1357,6 +1451,16 @@ function saveDay(k){
   var v=state.days[k];
   (v?remote("PUT","state/days/"+k,v):remote("DELETE","state/days/"+k)).catch(function(){});
 }
+var peeked=false,pulled=false;
+function moodPeek(){
+  if(peeked||!me||(!pulled&&base))return;
+  var o=me==="a"?"b":"a",m=state.mood&&state.mood[o];
+  if(!m||!MOODS[m.m]){peeked=true;return}
+  peeked=true;var e=document.createElement("div");
+  e.style.cssText="position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:99;background:var(--card);color:var(--tx);padding:16px 24px;border-radius:20px;box-shadow:0 8px 28px rgba(0,0,0,.3);text-align:center;opacity:1;transition:opacity .9s;pointer-events:none";
+  e.innerHTML='<div style="font-size:3rem">'+MOODS[m.m][0]+'</div><div><b>'+esc(NAMES[o])+'</b> · '+MOODS[m.m][1]+' · '+ago(m.ts)+'</div>';
+  document.body.appendChild(e);
+  setTimeout(function(){e.style.opacity="0"},1700);setTimeout(function(){e.remove()},2700)}
 function pull(){
   if(!base||dragging||Date.now()-lastWrite<1500)return;
   fetch(base+"/state.json").then(function(r){return r.json()}).then(function(d){
@@ -1364,7 +1468,7 @@ function pull(){
     d=d||{};var m=d.miss||{};
     var ns={miss:{a:m.a||0,b:m.b||0},t:d.t||{},pt:d.pt||{},mood:d.mood||{},sleep:d.sleep||{},wake:d.wake||{},together:d.together||null,mm:d.mm||{},days:d.days||{}};
     var j=JSON.stringify(ns);note.textContent="Közösen szinkronizálva ❤";
-    if(j===lastJson)return;lastJson=j;state=ns;
+    pulled=true;if(j===lastJson){moodPeek();return}lastJson=j;state=ns;moodPeek();
     ["a","b"].forEach(function(q){if(!ns.pt[q]&&photos[q]){delete photos[q];ptSeen[q]=0}});
     ["a","b"].forEach(function(q){if(ns.pt[q]&&ns.pt[q]!==ptSeen[q]){ptSeen[q]=ns.pt[q];fetch(base+"/photos/"+q+".json").then(function(r){return r.json()}).then(function(v){if(typeof v==="string"){photos[q]=v;renderMeters()}}).catch(function(){})}});
     try{localStorage.setItem("rr_state",j)}catch(e){}
