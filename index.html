@@ -73,6 +73,9 @@ body{transition:background .6s}
 #g-x .card{padding:10px}
 .wb{display:block;width:100%;text-align:left;border:2px solid var(--soft);background:var(--bg);color:var(--tx);border-radius:16px;padding:14px;margin:8px 0;font:inherit;font-size:1rem;cursor:pointer}.wb.sel{background:var(--pink);border-color:var(--pink);color:#fff}.wbd{display:inline-block;margin:6px 6px 0 0;padding:2px 8px;border-radius:999px;font-size:.75rem;color:#000}
 .uc{width:52px;height:78px;border-radius:10px;border:3px solid #fff;font-weight:800;font-size:1.15rem;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3);cursor:pointer;padding:0;line-height:1.1}.uc.dim{opacity:.4}.uc.usel{transform:translateY(-10px);outline:3px solid var(--pink)}.uc.big{width:72px;height:108px;font-size:1.7rem}.ucw{background:linear-gradient(135deg,#e53935 25%,#fdd835 25% 50%,#43a047 50% 75%,#1e88e5 75%)}
+#moodfx{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;pointer-events:none;font-size:min(92vw,78vh);line-height:1}
+#moodfx.go{display:flex;animation:mfx 4s ease-out forwards}
+@keyframes mfx{0%{opacity:0;transform:scale(.5)}10%{opacity:1;transform:scale(1)}45%{opacity:1;transform:scale(1.03)}100%{opacity:0;transform:scale(1.1)}}
 </style>
 </head>
 <body>
@@ -493,9 +496,14 @@ document.querySelectorAll(".tab").forEach(function(b){b.onclick=function(){
 setInterval(renderQ,60000);renderQ();
 var MOODS=[["😭","sírós"],["😴","fáradt"],["😊","boldog"],["😢","szomorú"],["😠","ideges"],["😄","vidám"],null,["🤒","beteg"],["🥱","unatkozik"]];
 function ago(ts){var m=Math.floor((Date.now()-ts)/6e4);return m<1?"most":m<60?m+" perce":m<1440?Math.floor(m/60)+" órája":Math.floor(m/1440)+" napja"}
-function setMood(i){if(!me)return;var o={m:i,ts:Date.now()};state.mood=state.mood||{};state.mood[me]=o;
+function setMood(i){if(!me)return;moodFx(MOODS[i][0]);var o={m:i,ts:Date.now()};state.mood=state.mood||{};state.mood[me]=o;
   try{localStorage.setItem("rr_state",JSON.stringify(state))}catch(e){}
   if(base){lastWrite=Date.now();remote("PUT","state/mood/"+me,o).catch(function(){})}renderMood()}
+function moodFx(e){
+  var el=document.getElementById("moodfx");
+  if(!el){el=document.createElement("div");el.id="moodfx";document.body.appendChild(el)}
+  el.className="";el.textContent=e;void el.offsetWidth;el.className="go";
+  clearTimeout(moodFx.t);moodFx.t=setTimeout(function(){el.className="";el.textContent=""},4200)}
 function renderMood(){
   var g=document.getElementById("mgrid"),mm=state.mood||{};
   g.innerHTML=MOODS.map(function(x,i){if(!x)return"";return '<button class="mb'+(me&&mm[me]&&mm[me].m===i?" sel":"")+'" data-i="'+i+'"><span>'+x[0]+'</span>'+x[1]+'</button>'}).join("");
