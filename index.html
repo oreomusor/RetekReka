@@ -145,6 +145,21 @@ body{transition:background .6s}
   <div class="cal-h"><button id="prev" aria-label="Előző hónap">‹</button><strong id="title"></strong><button id="next" aria-label="Következő hónap">›</button></div>
   <div class="grid" id="grid"></div>
   <div class="next" id="nextmeet"></div>
+  <div style="text-align:center;margin-top:8px"><button class="chip" id="wkopen">📥 Munka beírása</button></div>
+  <div id="wkbox" hidden style="margin-top:8px">
+    <label class="up" style="display:block">📷 Beosztás képének kiválasztása<input type="file" id="wkimg" accept="image/*" hidden></label>
+    <div style="display:flex;gap:6px;align-items:center;margin:8px 0"><span style="font-weight:600">Hónap:</span><input type="month" id="wkmonth" class="tin"></div>
+    <canvas id="wkcv" style="width:100%;border-radius:10px;display:none"></canvas>
+    <div class="stat" id="wkres"></div>
+    <button class="save" id="wkimgok" hidden>✅ Beírom a talált napokat</button>
+    <details style="margin:8px 0"><summary>⚙ Beállítások a képhez</summary>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:6px"><span>Személyek száma:</span><input type="number" id="wkp" class="tin" style="width:70px" min="1" max="60"><span>Réka hányadik:</span><input type="number" id="wki" class="tin" style="width:70px" min="1" max="60"></div>
+    </details>
+    <div class="stat" style="margin:0 0 6px">Vagy kézzel: írd be a dátumokat (pl. 2026-12-12, 2026-12-13). Mindegyik napra bekerül egy „munka” bejegyzés Réka nevén. Csak napot (pl. 12, 13) is írhatsz, az a most megjelenített hónapra vonatkozik.</div>
+    <textarea id="wkin" class="tin" style="width:100%;min-height:70px" placeholder="2026-12-12, 2026-12-13, …"></textarea>
+    <button class="save" id="wkgo" style="margin-top:6px">Beírom a naptárba</button>
+    <div class="stat" id="wkmsg"></div>
+  </div>
   <div class="panel" id="panel" hidden>
     <button class="chip" id="pclose" style="float:right">✕ Bezár</button><strong id="ptitle"></strong>
     <label class="chk"><input type="checkbox" id="met"> Ezen a napon találkozunk ❤</label>
@@ -892,11 +907,63 @@ function evCheer(id,t){var k=Date.now()+"_"+me,o={by:me,t:t};evs[id].cheers=evs[
 function evRes(id,t,em){var o={by:me,t:t,e:em,ts:Date.now()};evs[id].res=o;lastWrite=Date.now();
   if(base)remote("PUT","ev/"+id+"/res",o).catch(function(){});renderEv()}
 function cheerHtml(e){var c=e.cheers||{};return Object.keys(c).sort().map(function(k){return '<div class="hd">💌 '+esc(NAMES[c[k].by])+': '+esc(c[k].t)+'</div>'}).join("")}
+document.getElementById("wkopen").onclick=function(){var b=document.getElementById("wkbox");b.hidden=!b.hidden;
+  document.getElementById("wkmonth").value=vy+"-"+pad(vm+1);
+  var p=1*localStorage.getItem("wk_p")||12,i=1*localStorage.getItem("wk_i")||9;document.getElementById("wkp").value=p;document.getElementById("wki").value=i};
+var wkFound=[];
+function wkNear(c,t,tol){return Math.abs(c[0]-t[0])<=tol&&Math.abs(c[1]-t[1])<=tol&&Math.abs(c[2]-t[2])<=tol}
+function wkRun(img){
+  var res=document.getElementById("wkres"),ok=document.getElementById("wkimgok");ok.hidden=true;wkFound=[];
+  var P=Math.max(1,+document.getElementById("wkp").value||12),IDX=Math.max(1,+document.getElementById("wki").value||9);
+  try{localStorage.setItem("wk_p",P);localStorage.setItem("wk_i",IDX)}catch(e){}
+  var sc=Math.min(1,2400/img.width),W=Math.round(img.width*sc),H=Math.round(img.height*sc),cv=document.getElementById("wkcv"),cx=cv.getContext("2d");
+  cv.width=W;cv.height=H;cv.style.display="block";cx.drawImage(img,0,0,W,H);
+  var data=cx.getImageData(0,0,W,H).data;
+  function px(x,y){var i=(y*W+x)*4;return [data[i],data[i+1],data[i+2]]}
+  var BE=[255,229,153],PK=[234,153,153],GR=[52,168,83],cnt=[],mx=0,x,y,c;
+  for(x=0;x<W;x++){c=0;for(y=0;y<H;y++)if(wkNear(px(x,y),BE,8))c++;cnt.push(c);if(c>mx)mx=c}
+  if(mx<30){res.textContent="Nem találom a nevek oszlopát ezen a képen. Ellenőrizd, hogy a teljes táblázat látszik-e.";return}
+  var xa=-1,xb=-1;for(x=0;x<W;x++)if(cnt[x]>mx*.5){if(xa<0)xa=x;xb=x}
+  var xn=xa+3,runs=[],st=-1,gap=0,last=0;
+  for(y=0;y<H;y++){if(wkNear(px(xn,y),BE,8)){if(st<0)st=y;gap=0;last=y}else if(st>=0){gap++;if(gap>5){runs.push([st,last]);st=-1;gap=0}}}
+  if(st>=0)runs.push([st,last]);
+  runs=runs.filter(function(r){return r[1]-r[0]>40*sc});
+  if(!runs.length){res.textContent="Nem találom a névsort a képen.";return}
+  var y0=runs[0][0],y1=runs[runs.length-1][1],rowH=(y1-y0+1)/(P*2),L=xb+1.5,yN=y0+((IDX-1)*2+.5)*rowH,R=-1;
+  for(x=Math.round(L+150*sc);x<W;x++)if(wkNear(px(x,Math.round(yN)),PK,8)){R=x;break}
+  if(R<0){res.textContent="Nem találom a napok táblázatának jobb szélét (az összesítő oszlopot).";return}
+  var pitch=(R-L)/31,found=[],half,d,dx,dy,t,g;
+  for(half=0;half<2;half++){var ya=Math.round(y0+((IDX-1)*2+half+.5)*rowH);
+    for(d=0;d<31;d++){var cxm=Math.round(L+(d+.5)*pitch),hw=Math.floor(.35*pitch),hh=Math.max(1,Math.floor(rowH*.28));t=0;g=0;
+      for(dx=-hw;dx<=hw;dx++)for(dy=-hh;dy<=hh;dy++){t++;if(wkNear(px(cxm+dx,ya+dy),GR,30))g++}
+      if(g/t>.35&&found.indexOf(d+1)<0){found.push(d+1);cx.strokeStyle="#0066ff";cx.lineWidth=Math.max(2,2*sc);cx.strokeRect(L+d*pitch,y0+((IDX-1)*2)*rowH,pitch,rowH*2)}}}
+  found.sort(function(a,b){return a-b});
+  cx.strokeStyle="#ff2d55";cx.lineWidth=Math.max(2,2*sc);cx.strokeRect(L,y0+((IDX-1)*2)*rowH,R-L,rowH*2);
+  wkFound=found;
+  res.textContent=found.length?("A pirossal bekeretezett sorban "+found.length+" zöld H van: "+found.join(", ")+". Ha ez a Réka sora, nyomd meg a gombot."):"Ebben a sorban nem találtam zöld H-t. Ha rossz a sor (nem Réka), állítsd át a beállításokban, hogy Réka hányadik.";
+  ok.hidden=!found.length}
+document.getElementById("wkimg").onchange=function(){var f=this.files[0];if(!f)return;var im=new Image(),u=URL.createObjectURL(f);
+  im.onload=function(){URL.revokeObjectURL(u);window._wkimg=im;wkRun(im)};im.onerror=function(){document.getElementById("wkres").textContent="Ezt a képet nem tudom megnyitni."};im.src=u};
+document.getElementById("wkp").onchange=document.getElementById("wki").onchange=function(){if(window._wkimg)wkRun(window._wkimg)};
+document.getElementById("wkimgok").onclick=function(){var mv=document.getElementById("wkmonth").value,m=/^(\d{4})-(\d{2})$/.exec(mv);if(!m||!wkFound.length)return;
+  document.getElementById("wkin").value=wkFound.map(function(d){return m[1]+"-"+m[2]+"-"+pad(d)}).join(", ");
+  document.getElementById("wkgo").onclick();document.getElementById("wkres").textContent=document.getElementById("wkmsg").textContent};
+document.getElementById("wkgo").onclick=function(){
+  var m=document.getElementById("wkmsg"),toks=document.getElementById("wkin").value.split(/[\s,;]+/).filter(Boolean),add=0,skip=0,bad=0,seen={};
+  toks.forEach(function(t,i){var y,mo,d,mm=/^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(t);
+    if(mm){y=+mm[1];mo=+mm[2]-1;d=+mm[3]}else if(/^\d{1,2}$/.test(t)){y=vy;mo=vm;d=+t}else{bad++;return}
+    var dt=new Date(y,mo,d);if(dt.getFullYear()!==y||dt.getMonth()!==mo||dt.getDate()!==d){bad++;return}
+    var k=key(y,mo,d);if(seen[k])return;seen[k]=1;
+    var dup=Object.keys(evs).some(function(id){var e=evs[id];return e&&e.date===k&&e.by==="b"&&e.txt==="munka"});
+    if(dup){skip++;return}
+    evPut(Date.now()+"_b"+i,{by:"b",date:k,time:"",txt:"munka",imp:false,ts:Date.now()});add++});
+  m.textContent=add+" nap beírva"+(skip?", "+skip+" már benne volt":"")+(bad?", "+bad+" hibás dátum kimaradt":"")+".";
+  if(add)document.getElementById("wkin").value=""};
 function renderDayEv(){
   var el=document.getElementById("evlist");if(!sel){el.innerHTML="";return}
   var L=Object.keys(evs).filter(function(id){return evs[id]&&evs[id].date===sel}).sort(function(a,b){return (evs[a].time||"")>(evs[b].time||"")?1:-1});
   el.innerHTML=L.map(function(id){var e=evs[id];
-    return '<div class="ans"><b>'+esc(e.time||"egész nap")+" · "+esc(NAMES[e.by])+(e.imp?" · "+KINDS[e.kind||"egyeb"]:"")+'</b>'+esc(e.txt)+(e.by===me?'<br><button class="chip" data-evdel="'+id+'">🗑 Törlés</button>':"")+'</div>'}).join("")}
+    return '<div class="ans"><b>'+esc(e.time||"egész nap")+" · "+esc(NAMES[e.by])+(e.imp?" · "+KINDS[e.kind||"egyeb"]:"")+'</b>'+esc(e.txt)+((e.by===me||e.txt==="munka")?'<br><button class="chip" data-evdel="'+id+'">🗑 Törlés</button>':"")+'</div>'}).join("")}
 function renderImp(){
   var box=document.getElementById("imp"),card=document.getElementById("impcard");
   if(document.activeElement&&box.contains(document.activeElement)&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;
