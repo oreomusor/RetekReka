@@ -73,9 +73,9 @@ body{transition:background .6s}
 #g-x .card{padding:10px}
 .wb{display:block;width:100%;text-align:left;border:2px solid var(--soft);background:var(--bg);color:var(--tx);border-radius:16px;padding:14px;margin:8px 0;font:inherit;font-size:1rem;cursor:pointer}.wb.sel{background:var(--pink);border-color:var(--pink);color:#fff}.wbd{display:inline-block;margin:6px 6px 0 0;padding:2px 8px;border-radius:999px;font-size:.75rem;color:#000}
 .uc{width:52px;height:78px;border-radius:10px;border:3px solid #fff;font-weight:800;font-size:1.15rem;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3);cursor:pointer;padding:0;line-height:1.1}.uc.dim{opacity:.4}.uc.usel{transform:translateY(-10px);outline:3px solid var(--pink)}.uc.big{width:72px;height:108px;font-size:1.7rem}.ucw{background:linear-gradient(135deg,#e53935 25%,#fdd835 25% 50%,#43a047 50% 75%,#1e88e5 75%)}
-#moodfx{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;pointer-events:none;font-size:min(92vw,78vh);line-height:1}
+#moodfx{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;pointer-events:none;overflow:hidden;font-size:min(190vw,112vh);line-height:1}
 #moodfx.go{display:flex;animation:mfx 4s ease-out forwards}
-@keyframes mfx{0%{opacity:0;transform:scale(.5)}10%{opacity:1;transform:scale(1)}45%{opacity:1;transform:scale(1.03)}100%{opacity:0;transform:scale(1.1)}}
+@keyframes mfx{0%{opacity:0;transform:scale(.3)}10%{opacity:1;transform:scale(1)}45%{opacity:1;transform:scale(1.05)}100%{opacity:0;transform:scale(1.25)}}
 </style>
 </head>
 <body>
@@ -1441,7 +1441,7 @@ function uploadPhoto(k,file,el){
     var d=c.toDataURL("image/jpeg",0.7),ts=Date.now();
     var done=function(){photos[k]=d;state.pt=state.pt||{};state.pt[k]=ts;ptSeen[k]=ts;
       if(base){lastWrite=Date.now();var o={};o["pt/"+k]=ts;remote("PATCH","state",o).catch(function(){})}
-      commitMiss(k,30);renderMeters()};
+      commitMiss(k,60);renderMeters()};
     if(base){remote("PUT","photos/"+k,d).then(function(x){if(!x.ok)throw 0;done()}).catch(function(){el.textContent="Nem sikerült a feltöltés, próbáld újra"})}else done();
   };
   img.onerror=function(){el.textContent="Ezt a képet nem tudom megnyitni"};
