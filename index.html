@@ -125,6 +125,7 @@ body{transition:background .6s}
   <div class="msg" id="msg"></div>
   <div class="ans" id="nearbanner" hidden style="text-align:center;color:var(--pink);font-weight:700">💔 El ne felejts teljesen! Told feljebb a szíved.</div>
   <div style="text-align:center"><button class="chip" id="notifbtn" hidden>🔔 Értesítések bekapcsolása</button></div>
+  <div style="text-align:center"><button class="chip" id="ntfybtn" hidden></button></div>
   <div class="note" id="syncnote"></div>
 </section>
 
@@ -306,14 +307,15 @@ var MSGS=["Még nem nyomtál semmit 🙂","Egy kicsit hiányzol","Néha eszembe 
 var HEART='<svg viewBox="0 0 24 22" aria-hidden="true"><path d="M12 21.2 3.2 12.6C.6 10 .6 6 3.2 3.6c2.4-2.2 6-1.8 8 .6l.8 1 .8-1c2-2.4 5.6-2.8 8-.6 2.6 2.4 2.6 6.4 0 9L12 21.2z"/></svg>';
 var CHIPS=["Focimeccs ⚽","Tanulás 📚","Családi program 👨‍👩‍👧","Séta 🚶","Mozi 🎬","Vacsora 🍝"];
 var state={miss:{a:0,b:0},t:{},days:{}};var dragging=false;
-function eff(k){var v=state.miss[k]||0,t=state.t&&state.t[k];if(!t)return v;var sl=state.sleep&&state.sleep[k],rf=(sl&&sl.s&&!sl.w)?sl.s:Date.now();var tg=state.together;if(tg&&tg.s&&!tg.w&&Date.now()-tg.s<1728e5&&tg.s<rf)rf=Math.max(t,tg.s);var el=rf-t-metMs(t,rf);return Math.max(0,v-5*Math.max(0,el/3600000))}
+function eff(k){var v=state.miss[k]||0,t=state.t&&state.t[k];if(!t)return v;var sl=state.sleep&&state.sleep[k],rf=(sl&&sl.s&&!sl.w)?sl.s:Date.now();var el=rf-t;return Math.max(0,v-5*Math.max(0,el/3600000))}
 function metMs(a,b){var tot=0,d=new Date(a);d.setHours(0,0,0,0);
   for(var n=0;d.getTime()<b&&n<120;n++){var st=d.getTime(),nx=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1).getTime(),
     inf=state.days&&state.days[key(d.getFullYear(),d.getMonth(),d.getDate())];
     if(inf&&inf.met)tot+=Math.max(0,Math.min(b,nx)-Math.max(a,st));d=new Date(nx)}
   return tot}
 function commitMiss(k,x){dragging=false;var ts=Date.now();state.miss[k]=x;state.t=state.t||{};state.t[k]=ts;try{localStorage.setItem("rr_state",JSON.stringify(state))}catch(e){}
-  if(base){lastWrite=Date.now();var u={};u["miss/"+k]=x;u["t/"+k]=ts;remote("PATCH","state",u).catch(function(){})}}
+  if(base){lastWrite=Date.now();var u={};u["miss/"+k]=x;u["t/"+k]=ts;remote("PATCH","state",u).catch(function(){})}
+  if(k===me)schedNear()}
 var me=null;
 var ref=null,sel=null,base=null,lastWrite=0,photos={},ptSeen={},evDates={};
 var now=new Date();var vy=now.getFullYear(),vm=now.getMonth();
@@ -550,14 +552,37 @@ function notifyMe(t,b){
       navigator.serviceWorker.getRegistration().then(function(r){if(r&&r.showNotification)r.showNotification(t,{body:b,vibrate:[200,100,200],tag:"retek-near"});else plain()}).catch(plain)}
     else plain()}}catch(e){}
   try{if(navigator.vibrate)navigator.vibrate([200,100,200])}catch(e){}}
+// Háttér-értesítés (ntfy időzített kézbesítés): a 35%-ot elérő szív akkor is jelez, ha az app zárva van
+function ntTopic(){try{return me&&localStorage.getItem("rr_ntfy_"+me)}catch(e){return null}}
+function ntUI(){var b=document.getElementById("ntfybtn");b.hidden=!me;b.textContent=ntTopic()?"✅ Háttér-értesítés be (kikapcsolás)":"📲 Értesítés akkor is, ha zárva az app"}
+function schedNear(){
+  var tp=ntTopic();if(!tp)return;
+  var sk="rr_ns_"+me,u="https://ntfy.sh/"+tp+"/rr-near-"+me,old=null,now=Date.now();
+  try{old=JSON.parse(localStorage.getItem(sk)||"null")}catch(e){}
+  if(old&&old.at<now){old=null;try{localStorage.removeItem(sk)}catch(e){}}
+  var sl=state.sleep&&state.sleep[me],asleep=!!(sl&&sl.s&&!sl.w),v=eff(me),at=0;
+  if(!asleep&&v>35){at=now+(v-35)/5*36e5;if(at-now<15e3||at-now>71*36e5)at=0}
+  if(!old&&!at)return;if(old&&at&&Math.abs(old.at-at)<9e4)return;
+  var go=function(){if(!at){try{localStorage.removeItem(sk)}catch(e){}return}
+    fetch(u,{method:"POST",headers:{Delay:Math.round((at-Date.now())/1000)+"s",Title:"RetekReka",Tags:"broken_heart"},body:"El ne felejts teljesen! 💔 A szíved elérte a 35%-ot."})
+      .then(function(r){if(r.ok)try{localStorage.setItem(sk,JSON.stringify({at:at}))}catch(e){}}).catch(function(){})};
+  if(old)fetch(u,{method:"DELETE"}).then(go,go);else go()}
+document.getElementById("ntfybtn").onclick=function(){
+  if(!me)return;var tp=ntTopic();
+  if(tp){if(confirm("Kikapcsolod a háttér-értesítést?")){fetch("https://ntfy.sh/"+tp+"/rr-near-"+me,{method:"DELETE"}).catch(function(){});try{localStorage.removeItem("rr_ntfy_"+me);localStorage.removeItem("rr_ns_"+me)}catch(e){}}ntUI();return}
+  var a=new Uint8Array(8);crypto.getRandomValues(a);tp="retekreka-"+me+"-"+Array.prototype.map.call(a,function(x){return("0"+x.toString(16)).slice(-2)}).join("");
+  try{localStorage.setItem("rr_ntfy_"+me,tp)}catch(e){}
+  fetch("https://ntfy.sh/"+tp,{method:"POST",headers:{Title:"RetekReka"},body:"Működik! 💞 Ha ezt látod, a háttér-értesítés be van állítva."}).catch(function(){});
+  prompt("1) Telepítsd az ntfy appot (Android / iPhone)\n2) Az appban iratkozz fel erre a témára (másold ki):\n3) Kapsz egy tesztüzenetet. Ezután a 35%-os jelzés akkor is megjön, ha az app zárva van.",tp);
+  ntUI();checkNear()};
 function checkNear(){
   var nb=document.getElementById("notifbtn");
   nb.hidden=!("Notification" in window)||Notification.permission!=="default";
-  var ban=document.getElementById("nearbanner");if(!me){ban.hidden=true;return}
+  var ban=document.getElementById("nearbanner");ntUI();if(!me){ban.hidden=true;return}schedNear();
   var v=eff(me),near=v>=30&&v<=35,fk="rr_nt_"+me;ban.hidden=!near;
   if(v>35){try{localStorage.removeItem(fk)}catch(e){}return}
   if(near){var done=null;try{done=localStorage.getItem(fk)}catch(e){}
-    if(done!=="1"){try{localStorage.setItem(fk,"1")}catch(e){}notifyMe("RetekRéka ❤","El ne felejts teljesen! 💔")}}
+    if(done!=="1"){try{localStorage.setItem(fk,"1")}catch(e){}if(!ntTopic())notifyMe("RetekRéka ❤","El ne felejts teljesen! 💔")}}
 }
 document.getElementById("notifbtn").onclick=function(){
   try{Notification.requestPermission().then(function(){checkNear()})}catch(e){}};
@@ -575,7 +600,7 @@ function tgActive(){var g=state.together;return !!(g&&g.s&&!g.w&&Date.now()-g.s<
 function tgSave(){try{localStorage.setItem("rr_state",JSON.stringify(state))}catch(e){}}
 function tgStart(){if(!me)return;var o={s:Date.now(),by:me};state.together=o;tgSave();
   if(base){lastWrite=Date.now();remote("PUT","state/together",o).catch(function(){})}renderMeters()}
-function tgEnd(){var g=state.together;if(!g||!g.s||g.w)return;var w=Date.now(),sh=Math.max(0,(w-g.s)-metMs(g.s,w)),u={};
+function tgEnd(){var g=state.together;if(!g||!g.s||g.w)return;var w=Date.now(),sh=0,u={};
   state.t=state.t||{};["a","b"].forEach(function(k){var t=state.t[k];if(t&&t<g.s){t+=sh;state.t[k]=t;u["t/"+k]=t}});
   g.w=w;tgSave();
   if(base){lastWrite=Date.now();remote("PUT","state/together",g).catch(function(){});if(Object.keys(u).length)remote("PATCH","state",u).catch(function(){})}
@@ -583,8 +608,8 @@ function tgEnd(){var g=state.together;if(!g||!g.s||g.w)return;var w=Date.now(),s
 function renderTG(){
   document.documentElement.classList.toggle("tog",tgActive());
   var el=document.getElementById("tg"),g=state.together,n=new Date(),k=key(n.getFullYear(),n.getMonth(),n.getDate()),mt=state.days&&state.days[k]&&state.days[k].met;
-  if(tgActive())el.innerHTML='<div class="ans" style="text-align:left"><b>💞 Együtt vagytok</b>'+esc(NAMES[g.by])+' jelezte ('+ago(g.s)+'). Amíg együtt vagytok, nem csökken a hiány.</div><button class="chip" id="tgend">Vége, külön vagyunk</button>';
-  else if(mt&&me)el.innerHTML='<button class="save" id="tgstart">💞 Együtt vagyunk</button><div class="note">Elég, ha az egyikőtök megnyomja – addig nem csökken a hiány.</div>';
+  if(tgActive())el.innerHTML='<div class="ans" style="text-align:left"><b>💞 Együtt vagytok</b>'+esc(NAMES[g.by])+' jelezte ('+ago(g.s)+').</div><button class="chip" id="tgend">Vége, külön vagyunk</button>';
+  else if(mt&&me)el.innerHTML='<button class="save" id="tgstart">💞 Együtt vagyunk</button><div class="note">Elég, ha az egyikőtök megnyomja.</div>';
   else el.innerHTML="";
   var a=document.getElementById("tgstart");if(a)a.onclick=tgStart;var b=document.getElementById("tgend");if(b)b.onclick=tgEnd;
 }
