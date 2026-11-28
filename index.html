@@ -255,10 +255,9 @@ body{transition:background .6s}
   </section>
    <section class="card">
     <h2>Csevegő 💬</h2>
-    <div id="ucmsgs" style="max-height:200px;overflow:auto;margin:6px 0"></div>
-    <div id="ucemo" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0"></div>
-    <div id="ucphr" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0"></div>
+    <div id="ucmsgs" style="max-height:320px;min-height:120px;overflow:auto;margin:6px 0 10px"></div>
     <div style="display:flex;gap:6px"><input id="uctxt" maxlength="200" autocomplete="off" placeholder="Trashtalk ide…" style="flex:1;min-width:0;border:2px solid var(--soft);border-radius:12px;padding:10px;background:var(--bg);color:var(--tx);font:inherit"><button class="chip" id="ucsend">Küldés ➤</button></div>
+    <div id="ucemo" style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:8px"></div>
    </section>
    <section class="card"><h2>Szabályok 📖</h2><div class="note">Szabályok: színre vagy számra/jelre rakhatsz, a színválasztót és a +4-et bármikor. Egyszerre bármennyi lapot letehetsz, ha ugyanaz a szám vagy jel (koppints többre, aztán „Lerak"). Kimaradás és megfordítás: újra te jössz. A +2 és +4 összeadódik: a +2-re +2 és +4 is jöhet, a +4-re +4 bármikor, +2 pedig csak abban a színben, amit a +4-es kért. Ha nem tudsz rátenni, húzod az egész összeget, és vége a körödnek. Ha nincs mit rakni, húzol egy lapot, és automatikusan a másik jön. Ha valaki az utolsó lapját +2/+4-gyel rakja le, a másik még rátehet, és akkor a kiment játékosnak kell húznia. UNO-t kell mondani, ha egy lapod marad (2 lapnál előre is megnyomhatod), különben a másik elkaphat: +2 lap.</div></section>
   </div>
@@ -346,7 +345,7 @@ var MSGS=["Még nem nyomtál semmit 🙂","Egy kicsit hiányzol","Néha eszembe 
 var HEART='<svg viewBox="0 0 24 22" aria-hidden="true"><path d="M12 21.2 3.2 12.6C.6 10 .6 6 3.2 3.6c2.4-2.2 6-1.8 8 .6l.8 1 .8-1c2-2.4 5.6-2.8 8-.6 2.6 2.4 2.6 6.4 0 9L12 21.2z"/></svg>';
 var CHIPS=["Focimeccs ⚽","Tanulás 📚","Családi program 👨‍👩‍👧","Séta 🚶","Mozi 🎬","Vacsora 🍝"];
 var state={miss:{a:0,b:0},t:{},days:{}};var dragging=false;
-function eff(k){var v=state.miss[k]||0,t=state.t&&state.t[k];if(!t)return v;var sl=state.sleep&&state.sleep[k],rf=(sl&&sl.s&&!sl.w)?sl.s:Date.now();var el=rf-t;return Math.max(0,v-5*Math.max(0,el/3600000))}
+function eff(k){var v=state.miss[k]||0,t=state.t&&state.t[k];if(!t)return v;var sl=state.sleep&&state.sleep[k],rf=(sl&&sl.s&&!sl.w)?sl.s:Date.now();var el=rf-t;return Math.max(0,v-9*Math.max(0,el/3600000))}
 function metMs(a,b){var tot=0,d=new Date(a);d.setHours(0,0,0,0);
   for(var n=0;d.getTime()<b&&n<120;n++){var st=d.getTime(),nx=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1).getTime(),
     inf=state.days&&state.days[key(d.getFullYear(),d.getMonth(),d.getDate())];
@@ -636,7 +635,7 @@ function schedNear(){
   try{have=JSON.parse(localStorage.getItem(sk)||"{}")||{}}catch(e){}
   Object.keys(have).forEach(function(t){if(have[t]<now)delete have[t]});
   var sl=state.sleep&&state.sleep[me],asleep=!!(sl&&sl.s&&!sl.w),v=eff(me),want={};
-  if(!asleep)NTH.forEach(function(t){if(v>t){var at=now+(v-t)/5*36e5;if(at-now>=15e3&&at-now<71*36e5)want[t]=at}});
+  if(!asleep)NTH.forEach(function(t){if(v>t){var at=now+(v-t)/9*36e5;if(at-now>=15e3&&at-now<71*36e5)want[t]=at}});
   var next=JSON.parse(JSON.stringify(have)),save=function(){try{localStorage.setItem(sk,JSON.stringify(next))}catch(e){}};
   NTH.forEach(function(t){
     var h=have[t],w=want[t];if(!h&&!w)return;if(h&&w&&Math.abs(h-w)<9e4)return;
@@ -1615,10 +1614,9 @@ function ucSend(t){
   t=String(t||"").trim();if(!t||!me)return;var o={by:me,t:t.slice(0,200),ts:Date.now()};
   uc["l"+o.ts]=o;ucLast=Date.now();if(base)remote("POST","unochat",o).catch(function(){});renderUC()}
 (function(){
-  var e=document.getElementById("ucemo"),p=document.getElementById("ucphr");if(!e)return;
-  e.innerHTML=UCE.map(function(x){return '<button type="button" class="chip" style="font-size:1.25rem;padding:4px 9px">'+x+'</button>'}).join("");
-  p.innerHTML=UCP.map(function(x){return '<button type="button" class="chip">'+esc(x)+'</button>'}).join("");
-  e.onclick=p.onclick=function(ev){var b=ev.target.closest&&ev.target.closest("button");if(b)ucSend(b.textContent)};
+  if(!document.getElementById("ucsend"))return;
+  var em=document.getElementById("ucemo");em.innerHTML=UCE.map(function(x){return '<button type="button" class="chip" style="font-size:1.2rem;padding:3px 8px">'+x+'</button>'}).join("");
+  em.onclick=function(ev){var b=ev.target.closest&&ev.target.closest("button");if(b)ucSend(b.textContent)};
   document.getElementById("ucsend").onclick=function(){var i=document.getElementById("uctxt");ucSend(i.value);i.value=""};
   document.getElementById("uctxt").onkeydown=function(ev){if(ev.key==="Enter"){ev.preventDefault();document.getElementById("ucsend").onclick()}}})();
 function pollUC(){
