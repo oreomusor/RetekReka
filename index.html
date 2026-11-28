@@ -149,8 +149,8 @@ body{transition:background .6s}
   <div class="next" id="nextmeet"></div>
   <div style="text-align:center;margin-top:8px"><button class="chip" id="wkopen">📥 Munka beírása</button></div>
   <div id="wkbox" hidden style="margin-top:8px">
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0"><span style="font-weight:600">Tartalék: hányadik sorban van az adat?</span><input type="number" id="wki" class="tin" style="width:70px" min="1" max="60"></div>
-    <div class="hd" style="margin-bottom:8px">Az app először a névből keresi meg Réka sorát. Ezt a számot csak akkor használja, ha a névből nem sikerül (a névsorban fentről számolva, egy személy N és É sora együtt egy sor).</div>
+    <div hidden style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0"><span style="font-weight:600">Tartalék: hányadik sorban van az adat?</span><input type="number" id="wki" class="tin" style="width:70px" min="1" max="60"></div>
+    <div class="hd" hidden style="margin-bottom:8px">Az app először a névből keresi meg Réka sorát. Ezt a számot csak akkor használja, ha a névből nem sikerül (a névsorban fentről számolva, egy személy N és É sora együtt egy sor).</div>
     <details style="margin:8px 0"><summary>⚙ Személyek száma a táblázatban</summary><div style="margin-top:6px"><span>Személyek száma:</span> <input type="number" id="wkp" class="tin" style="width:70px" min="1" max="60"></div></details>
     <label class="up" style="display:block">📷 Beosztás képének kiválasztása<input type="file" id="wkimg" accept="image/*" hidden></label>
     <div style="display:flex;gap:6px;align-items:center;margin:8px 0"><span style="font-weight:600">Hónap:</span><input type="month" id="wkmonth" class="tin"></div>
@@ -1022,23 +1022,24 @@ function wkRun(img){
   nm.then(function(yc){
     if(tk!==wkTok)return;
     var byName=yc>=0,cy=byName?yc:y0+((IDX-1)*2+1)*rowH,R=-1;
+    if(byName){var ri=Math.max(1,Math.round((yc-y0)/(2*rowH)+.5));try{localStorage.setItem("wk_i",ri)}catch(e){}document.getElementById("wki").value=ri}
     if(cy<rowH||cy>H-rowH){res.textContent="A sor kívül esik a képen. Írd át a tartalék sorszámot.";return}
     for(x=Math.round(L+150*sc);x<W;x++)if(wkNear(px(x,Math.round(cy-rowH/2)),PK,14)){R=x;break}
     if(R<0){res.textContent="Nem találom a napok táblázatának jobb szélét (az összesítő oszlopot).";return}
-    var pitch=(R-L)/31,found=[],half,d,dx,dy,t,g;
+    var mm=/^(\d{4})-(\d{2})$/.exec(document.getElementById("wkmonth").value),ND=mm?new Date(+mm[1],+mm[2],0).getDate():31,pitch=(R-L)/ND,found=[],half,d,dx,dy,t,g;
     for(half=0;half<2;half++){var ya=Math.round(cy+(half-.5)*rowH);
-      for(d=0;d<31;d++){var cxm=Math.round(L+(d+.5)*pitch),hw=Math.floor(.35*pitch),hh=Math.max(1,Math.floor(rowH*.28));t=0;g=0;
+      for(d=0;d<ND;d++){var cxm=Math.round(L+(d+.5)*pitch),hw=Math.floor(.35*pitch),hh=Math.max(1,Math.floor(rowH*.28));t=0;g=0;
         for(dx=-hw;dx<=hw;dx++)for(dy=-hh;dy<=hh;dy++){t++;if(wkNear(px(cxm+dx,ya+dy),GR,40))g++}
         if(g/t>.35&&found.indexOf(d+1)<0){found.push(d+1);cx.strokeStyle="#0066ff";cx.lineWidth=Math.max(2,2*sc);cx.strokeRect(L+d*pitch,cy-rowH,pitch,rowH*2)}}}
     found.sort(function(a,b){return a-b});
     cx.strokeStyle="#ff2d55";cx.lineWidth=Math.max(2,2*sc);cx.strokeRect(L,cy-rowH,R-L,rowH*2);
     wkFound=found;
-    var how=byName?"A névből megtaláltam Réka sorát. ":(yc===-2?"A névfelismerő nem töltődött be (internet?), ezért ":"A névből nem találtam meg Réka sorát, ezért ")+"a tartalék, megadott "+IDX+". sort használtam. ";
-    res.textContent=how+(found.length?("A pirossal bekeretezett sorban "+found.length+" zöld H van: "+found.join(", ")+". Ha ez a Réka sora, nyomd meg a gombot."):"Ebben a sorban nem találtam zöld H-t. Ha rossz a sor, írd át fent, hogy hányadik sorban van az adat.");
+    var how=byName?"A névből megtaláltam Réka sorát. ":(yc===-2?"A névfelismerő nem töltődött be (internet?), ezért ":"A névből nem találtam meg Réka sorát, ezért ")+"az utoljára felismert sort ("+IDX+". sor) használtam. ";
+    res.textContent=how+"A kiválasztott hónap "+ND+" napos. "+(found.length?("A pirossal bekeretezett sorban "+found.length+" zöld H van: "+found.join(", ")+". Ha ez a Réka sora, nyomd meg a gombot."):"Ebben a sorban nem találtam zöld H-t. Lehet, hogy a kép nem a teljes táblázatot mutatja, vagy nem látszik rajta a neved. Próbáld újra egy tisztább képpel.");
     ok.hidden=!found.length})}
 document.getElementById("wkimg").onchange=function(){var f=this.files[0];if(!f)return;var im=new Image(),u=URL.createObjectURL(f);
   im.onload=function(){URL.revokeObjectURL(u);window._wkimg=im;wkRun(im)};im.onerror=function(){document.getElementById("wkres").textContent="Ezt a képet nem tudom megnyitni."};im.src=u};
-document.getElementById("wkp").onchange=document.getElementById("wki").onchange=function(){if(window._wkimg)wkRun(window._wkimg)};
+document.getElementById("wkp").onchange=document.getElementById("wki").onchange=document.getElementById("wkmonth").onchange=function(){if(window._wkimg)wkRun(window._wkimg)};
 document.getElementById("wkimgok").onclick=function(){var mv=document.getElementById("wkmonth").value,m=/^(\d{4})-(\d{2})$/.exec(mv);if(!m||!wkFound.length)return;
   document.getElementById("wkin").value=wkFound.map(function(d){return m[1]+"-"+m[2]+"-"+pad(d)}).join(", ");
   document.getElementById("wkgo").onclick();document.getElementById("wkres").textContent=document.getElementById("wkmsg").textContent};
