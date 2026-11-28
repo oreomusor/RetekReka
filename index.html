@@ -589,6 +589,7 @@ function renderCD(){
 }
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
 function notifyMe(t,b){
+  if(!document.hidden)return;
   try{if("Notification" in window&&Notification.permission==="granted"){
     var plain=function(){try{new Notification(t,{body:b})}catch(e){}};
     if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration){
@@ -603,7 +604,9 @@ function notifyOther(title,body){
   if(!me||!base)return;var o=me==="a"?"b":"a",id=title+body,n=Date.now();
   if(pushSent[id]&&n-pushSent[id]<15000)return;pushSent[id]=n;
   pushTopicOf(o,function(tp){if(!tp||typeof tp!=="string")return;
-    fetch("https://ntfy.sh/",{method:"POST",body:JSON.stringify({topic:tp,title:title,message:body,tags:["heart"]})}).catch(function(){})})}
+    fetch(base+"/pr/"+o+".json").then(function(r){return r.json()}).catch(function(){return 0}).then(function(v){
+      if(v&&Date.now()-v<30000)return;
+      fetch("https://ntfy.sh/",{method:"POST",body:JSON.stringify({topic:tp,title:title,message:body,tags:["heart"]})}).catch(function(){})})})}
 function pushHook(m,p,b){
   if(!me||b===undefined||b===null)return;var o=me==="a"?"b":"a",x=NAMES[me],q;
   if(p==="unochat"&&m==="POST"){notifyOther("🃏 UNO csevegő",x+": "+String(b.t).slice(0,80));return}
@@ -618,6 +621,9 @@ function ntReg(){
   if(!base||!me)return;var tp=ntTopic();
   if(tp&&ntReg.d!==me+tp){ntReg.d=me+tp;remote("PUT","push/"+me,tp).catch(function(){ntReg.d=""})}}
 setInterval(ntReg,10000);
+function presence(){if(!base||!me||document.hidden)return;remote("PUT","pr/"+me,Date.now()).catch(function(){})}
+setInterval(presence,10000);
+document.addEventListener("visibilitychange",function(){if(!base||!me)return;if(document.hidden)remote("PUT","pr/"+me,0).catch(function(){});else presence()});
 // Helyi értesítés, ha háttérben van az oldal, és új dolog vár rád
 var todoPrev=null,TODOMSG={"q:d":"Napi kérdés vár rád","q:w":"Inkább…? (vicces): te jössz","q:r":"Inkább…? (romantikus): te jössz","g:c":"Connect 4: te jössz","g:b":"Torpedó: te jössz","g:w":"Szójáték: te jössz","g:u":"UNO: te jössz"};
 function todoNotify(T){
