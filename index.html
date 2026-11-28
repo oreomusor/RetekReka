@@ -1281,7 +1281,7 @@ function spConnect(){
   var v=spB64(crypto.getRandomValues(new Uint8Array(48)));
   crypto.subtle.digest("SHA-256",new TextEncoder().encode(v)).then(function(h){
     localStorage.setItem("sp_v",v);localStorage.setItem("sp_who",me);localStorage.setItem("sp_cid",cid);
-    location.href="https://accounts.spotify.com/authorize?"+spQs({client_id:cid,response_type:"code",redirect_uri:spRedirect(),code_challenge_method:"S256",code_challenge:spB64(h),scope:"user-read-currently-playing"})})}
+    location.href="https://accounts.spotify.com/authorize?"+spQs({client_id:cid,response_type:"code",redirect_uri:spRedirect(),code_challenge_method:"S256",code_challenge:spB64(h),scope:"user-read-currently-playing user-read-recently-played"})})}
 (function(){
   var p=new URLSearchParams(location.search),code=p.get("code"),er=p.get("error");
   if(!code&&!er)return;
@@ -1309,7 +1309,7 @@ function spPlay(){
   .then(function(r){if(r.status===204)return null;if(!r.ok)throw r.status;return r.json()}).then(function(d){
     var o=d&&d.item?{t:d.item.name,a:(d.item.artists||[]).map(function(x){return x.name}).join(", ")||(d.item.show&&d.item.show.name)||"",p:!!d.is_playing}:{t:"",a:"",p:false};
     var key=o.t+"|"+o.p,now=Date.now();
-    if(key!==spLast.key||now-spLast.ts>30000){spLast={key:key,ts:now};o.ts=now;remote("PUT","sp/"+me,o).catch(function(){})}
+    if(key!==spLast.key||now-spLast.ts>30000){spLast={key:key,ts:now};o.ts=now;remote("PATCH","sp/"+me,o).catch(function(){})}
     if(spMsg){spMsg="";renderSp()}
   }).catch(function(e){if(e===401||e===403||e===0){spMsg="A Spotify nem engedi a lekérdezést (jogosultság). Ellenőrizd, hogy hozzá vagy-e adva az app felhasználóihoz.";renderSp()}})}
 function spData(){
@@ -1320,17 +1320,19 @@ function renderSp(){
   var L=document.getElementById("splist"),C=document.getElementById("spctl"),now=Date.now(),h="";
   ["a","b"].forEach(function(k){var o=spd[k],t;
     if(!o||!o.ts)t="még nem kapcsolódott";
-    else if(!o.t)t="most nem hallgat semmit";
+    else if(!o.t)t=o.l?"most nem hallgat · utoljára: "+esc(o.l)+" · "+ago(o.lt||o.ts):"most nem hallgat semmit";
     else t=(o.p&&now-o.ts<120000?"▶ ":"⏸ ")+esc(o.t)+(o.a?" – "+esc(o.a):"")+" · "+ago(o.ts);
     h+='<div class="ans"><b>'+esc(NAMES[k])+'</b>'+t+'</div>'});
   L.innerHTML=h;
   var c="";
   if(!spCid())c='<button class="chip" id="spopen">⚙ Spotify beállítása</button>';
   else if(me&&!spHasTok())c='<button class="save" id="spgo">🔗 Összekapcsolom a Spotifyt</button>';
-  else if(me)c='<span class="hd">Összekapcsolva ✓ · </span><button class="chip" id="spoff">Leválasztás</button>';
+  else if(me)c='<span class="hd">Összekapcsolva ✓ · '+(spd.w&&now-spd.w<180000?"háttérkövetés aktív ✓ · ":"")+'</span><button class="chip" id="spbg">🔑 Háttérkövetés</button> <button class="chip" id="spoff">Leválasztás</button>';
   C.innerHTML=c;document.getElementById("spmsg").textContent=spMsg;
   var a=document.getElementById("spopen");if(a)a.onclick=function(){document.getElementById("spsetup").hidden=false};
   var b=document.getElementById("spgo");if(b)b.onclick=spConnect;
+  var g=document.getElementById("spbg");if(g)g.onclick=function(){try{var t=JSON.parse(localStorage.getItem("sp_tok_"+me)).r,n="TOKEN_"+me.toUpperCase();
+    (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){spMsg="Token kimásolva – ezt add meg a háttérkövető Workernek ("+n+"). Lásd: spotify-worker/README.md";renderSp()}).catch(function(){prompt(n,t)})}catch(e){}};
   var d=document.getElementById("spoff");if(d)d.onclick=function(){try{localStorage.removeItem("sp_tok_"+me)}catch(e){}renderSp()};
 }
 document.getElementById("spredir").textContent=spRedirect();
