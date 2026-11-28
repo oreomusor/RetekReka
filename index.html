@@ -74,7 +74,7 @@ body{transition:background .6s}
 #rjin{position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;border:0;padding:0;font-size:16px}
 #g-x .card{padding:10px}
 .wb{display:block;width:100%;text-align:left;border:2px solid var(--soft);background:var(--bg);color:var(--tx);border-radius:16px;padding:14px;margin:8px 0;font:inherit;font-size:1rem;cursor:pointer}.wb.sel{background:var(--pink);border-color:var(--pink);color:#fff}.wbd{display:inline-block;margin:6px 6px 0 0;padding:2px 8px;border-radius:999px;font-size:.75rem;color:#000}
-.uc{width:52px;height:78px;border-radius:10px;border:3px solid #fff;font-weight:800;font-size:1.15rem;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3);cursor:pointer;padding:0;line-height:1.1}.uc.dim{opacity:.4}.uc.usel{transform:translateY(-10px);outline:3px solid var(--pink)}.uc.big{width:72px;height:108px;font-size:1.7rem}.ucw{background:linear-gradient(135deg,#e53935 25%,#fdd835 25% 50%,#43a047 50% 75%,#1e88e5 75%)}
+.uc{width:52px;height:78px;border-radius:10px;border:3px solid #fff;font-weight:800;font-size:1.15rem;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3);cursor:pointer;padding:0;line-height:1.1}.uc.dim{filter:brightness(.72) saturate(.55)}.uc.usel{outline:3px solid var(--pink)}.ubk{position:absolute;width:34px;height:50px;margin-left:-17px;border-radius:7px;border:3px solid #fff;background:#222;box-shadow:0 2px 5px rgba(0,0,0,.35)}.ubk::after{content:"";position:absolute;left:5px;right:5px;top:14px;height:12px;border-radius:50%;background:#e53935;transform:rotate(-25deg)}.uc.big{width:72px;height:108px;font-size:1.7rem}.ucw{background:linear-gradient(135deg,#e53935 25%,#fdd835 25% 50%,#43a047 50% 75%,#1e88e5 75%)}
 #moodfx{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;pointer-events:none;overflow:hidden;font-size:min(190vw,112vh);line-height:1}
 #moodfx.go{display:flex;animation:mfx 4s ease-out forwards}
 @keyframes mfx{0%{opacity:0;transform:scale(.3)}10%{opacity:1;transform:scale(1)}45%{opacity:1;transform:scale(1.05)}100%{opacity:0;transform:scale(1.25)}}
@@ -251,7 +251,7 @@ body{transition:background .6s}
   <section class="card">
     <h2>UNO 🃏</h2>
     <div id="uno-box"></div>
-    <div class="note">Szabályok: színre vagy számra/jelre rakhatsz, a színválasztót és a +4-et bármikor. Egyszerre bármennyi lapot letehetsz, ha ugyanaz a szám vagy jel (koppints többre, aztán „Lerak"). Kimaradás és megfordítás: újra te jössz. A +2 és +4 összeadódik: a +2-re +2 és +4 is jöhet, a +4-re +4 bármikor, +2 pedig csak abban a színben, amit a +4-es kért. Ha nem tudsz rátenni, húzod az egész összeget, és vége a körödnek. Ha nincs mit rakni, húzol egy lapot, és automatikusan a másik jön. Ha valaki az utolsó lapját +2/+4-gyel rakja le, a másik még rátehet, és akkor a kiment játékosnak kell húznia. UNO-t kell mondani, ha egy lapod marad (2 lapnál előre is megnyomhatod), különben a másik elkaphat: +2 lap.</div>
+    
   </section>
    <section class="card">
     <h2>Csevegő 💬</h2>
@@ -260,6 +260,7 @@ body{transition:background .6s}
     <div id="ucphr" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0"></div>
     <div style="display:flex;gap:6px"><input id="uctxt" maxlength="200" autocomplete="off" placeholder="Trashtalk ide…" style="flex:1;min-width:0;border:2px solid var(--soft);border-radius:12px;padding:10px;background:var(--bg);color:var(--tx);font:inherit"><button class="chip" id="ucsend">Küldés ➤</button></div>
    </section>
+   <section class="card"><h2>Szabályok 📖</h2><div class="note">Szabályok: színre vagy számra/jelre rakhatsz, a színválasztót és a +4-et bármikor. Egyszerre bármennyi lapot letehetsz, ha ugyanaz a szám vagy jel (koppints többre, aztán „Lerak"). Kimaradás és megfordítás: újra te jössz. A +2 és +4 összeadódik: a +2-re +2 és +4 is jöhet, a +4-re +4 bármikor, +2 pedig csak abban a színben, amit a +4-es kért. Ha nem tudsz rátenni, húzod az egész összeget, és vége a körödnek. Ha nincs mit rakni, húzol egy lapot, és automatikusan a másik jön. Ha valaki az utolsó lapját +2/+4-gyel rakja le, a másik még rátehet, és akkor a kiment játékosnak kell húznia. UNO-t kell mondani, ha egy lapod marad (2 lapnál előre is megnyomhatod), különben a másik elkaphat: +2 lap.</div></section>
   </div>
   <div id="g-r" hidden>
   <section class="card">
@@ -1555,6 +1556,18 @@ function tap(i){
   if(!legal(h[i]))return;
   if(h.filter(function(c){return key(c)===key(h[i])}).length>1){sel=[i];render()}else go([i])}
 function cardH(c,cls,extra){var bg=wild(c)?"":"background:"+CL[c[0]]+";"+(c[0]==="Y"?"color:#333;":"");return '<button class="uc '+(wild(c)?"ucw ":"")+cls+'" style="'+bg+'" '+extra+">"+lab(c)+"</button>"}
+function fanOpp(n,W,o){
+  var show=Math.min(n,24),cw=34,step=show>1?Math.min(20,(W-cw-40)/(show-1)):0,mid=(show-1)/2,sp=Math.min(5,46/Math.max(show,1)),h='<div style="text-align:center;font-weight:700;margin-top:4px">'+esc(NAMES[o])+" · "+n+" lap"+(n===1?" ⚠":"")+'</div><div style="position:relative;height:84px;overflow:hidden">';
+  for(var i=0;i<show;i++){var d=i-mid,y=6+d*d*.3;
+    h+='<div class="ubk" style="left:calc(50% + '+(d*step)+'px);top:'+y+'px;transform:rotate('+(-d*sp)+'deg);transform-origin:50% 50%;z-index:'+(i+1)+'"></div>'}
+  return h+'</div>'}
+function fanMine(hand,W,my){
+  var n=hand.length,cw=52,step=n>1?Math.min(36,(W-cw-76)/(n-1)):0,mid=(n-1)/2,sp=Math.min(4,36/Math.max(n,1)),h='<div style="position:relative;height:150px;margin:6px 0 0;overflow:hidden">';
+  hand.forEach(function(c,i){
+    var ins=sel.indexOf(i)>=0,can=my&&(sel.length?key(c)===key(hand[sel[0]]):legal(c)),d=i-mid,y=34+d*d*.35,
+      bg=wild(c)?"":"background:"+CL[c[0]]+";"+(c[0]==="Y"?"color:#333;":"");
+    h+='<button class="uc'+(wild(c)?" ucw":"")+(can?"":" dim")+(ins?" usel":"")+'" data-i="'+i+'" style="'+bg+'display:flex;align-items:flex-start;justify-content:flex-start;padding:6px 0 0 6px;position:absolute;left:calc(50% + '+(d*step-cw/2)+'px);top:'+y+'px;transform:rotate('+(d*sp)+'deg)'+(ins?' translateY(-16px)':'')+';transform-origin:50% 50%;z-index:'+(ins?99:i+1)+'">'+lab(c)+'</button>'});
+  return h+'</div>'}
 function render(){
   var box=$("uno-box");if(!box)return;
   if(!me){box.innerHTML='<div class="stat">Válaszd ki a főoldalon, hogy ki vagy.</div>';return}
@@ -1562,15 +1575,14 @@ function render(){
   if(!S.disc||!S.disc.length){box.innerHTML=x+'<button class="save" id="u-new">🃏 Új játék indítása</button>';return}
   var o=opp(),h=S.hands[me],oh=S.hands[o],t=S.disc[S.disc.length-1],my=S.turn===me&&!S.winner,pd=S.pend||0;
   sel=sel.filter(function(i){return i<h.length});
-  x+='<div class="stat">'+NAMES[o]+" lapjai: "+oh.length+" "+"🂠".repeat(Math.min(oh.length,14))+"</div>";
+  x+=fanOpp(oh.length,box.clientWidth||320,o);
   x+='<div style="display:flex;gap:18px;justify-content:center;align-items:center;margin:10px 0"><button class="uc" id="u-draw" style="background:#222;font-size:.8rem'+(my?"":";opacity:.5")+'">'+(pd&&my?"HÚZ<br>+"+pd:"HÚZÁS<br>"+S.deck.length)+"</button>"+cardH(t,"big","disabled")+'<div style="width:26px;height:26px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px #888;background:'+CL[S.col]+'" title="Aktuális szín"></div></div>';
   x+='<div class="stat"><b>'+esc(S.msg||"")+"</b></div>";
   if(S.winner)x+='<div class="msg">🏆 '+NAMES[S.winner]+' nyert!</div><button class="save" id="u-new">🃏 Új játék</button>';
   else x+='<div class="stat">'+(my?(pd?"⚠ "+pd+" lapot kell húznod, vagy rátehetsz +2/+4-et":"Te jössz!"):NAMES[o]+" jön…")+"</div>";
   if(pw)x+='<div style="display:flex;gap:8px;justify-content:center;margin:8px 0">'+"RGBY".split("").map(function(c){return '<button class="uc" data-c="'+c+'" style="background:'+CL[c]+';height:46px;width:58px'+(c==="Y"?";color:#333":"")+'">'+CN[c]+"</button>"}).join("")+"</div>";
-  x+='<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:12px 0">';
-  h.forEach(function(c,i){var ins=sel.indexOf(i)>=0,can=my&&(sel.length?key(c)===key(h[sel[0]]):legal(c));x+=cardH(c,(can?"":"dim ")+(ins?"usel":""),'data-i="'+i+'"')});
-  x+='</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">';
+  x+=fanMine(h,box.clientWidth||320,my);
+  x+='<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">';
   if(sel.length)x+='<button class="chip" id="u-go">✅ Lerak ('+sel.length+')</button><button class="chip" id="u-clr">Mégse</button>';
   if(!S.winner&&h.length<=2)x+='<button class="chip" id="u-uno">UNO! 🔔</button>';
   if(S.pu&&S.pu!==me&&!S.winner)x+='<button class="chip" id="u-catch">Nem mondta UNO-t! +2</button>';
