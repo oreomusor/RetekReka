@@ -82,6 +82,8 @@ body{transition:background .6s}
 </head>
 <body>
 <div id="gate"><div style="font-size:3rem">❤</div><h1>RetekRéka</h1><p class="sub">Ki vagy te?</p><button class="gbtn" data-k="a">Filius vagyok</button><button class="gbtn" data-k="b">Réka vagyok</button></div>
+<style>#setup{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px}#setup[hidden]{display:none}</style>
+<div id="setup" hidden><div class="mbox"><div style="font-size:2.4rem">✨</div><h2 style="color:var(--pink)">Kapcsoljuk be a hátralévőket</h2><div id="setlist" style="text-align:left;margin:10px 0"></div><button class="save" id="setall">✅ Mindent bekapcsolok</button><button class="chip" id="setlater" style="margin-top:10px">Később</button></div></div>
 <div id="m80" hidden><div class="mbox"><div style="font-size:2.4rem">💘</div><h2 id="m80t" style="color:var(--pink)"></h2><p class="sub" style="margin:0 0 10px">Mielőtt ennyire felviszed a szíved: írd le, mi hiányzik a legjobban a másikban!</p><textarea id="m80in" placeholder="Pl. az ölelésed, ahogy nevetsz…"></textarea><div class="stat" id="m80msg"></div><button class="save" id="m80ok">Elküldöm</button><button class="chip" id="m80no" style="margin-top:8px">Mégsem</button></div></div>
 <main hidden>
 <h1>RetekRéka ❤</h1>
@@ -668,6 +670,35 @@ function checkNear(){
 }
 document.getElementById("notifbtn").onclick=function(){
   try{Notification.requestPermission().then(function(){checkNear()})}catch(e){}};
+// Belépéskor: minden hiányzó beállítás egy ablakban, egy kattintással
+function ntCreate(){
+  var a=new Uint8Array(8);crypto.getRandomValues(a);
+  var tp="retekreka-"+me+"-"+Array.prototype.map.call(a,function(x){return("0"+x.toString(16)).slice(-2)}).join("");
+  try{localStorage.setItem("rr_ntfy_"+me,tp)}catch(e){}ntReg();
+  fetch("https://ntfy.sh/"+tp,{method:"POST",headers:{Title:"RetekReka"},body:"Működik! 💞 Ha ezt látod, a háttér-értesítés be van állítva."}).catch(function(){});
+  return tp}
+function setupPending(){var L=[];
+  if("Notification" in window&&Notification.permission==="default")L.push(["n","🔔","Értesítések a telefonon"]);
+  if(!ntTopic())L.push(["t","📲","Háttér-értesítés akkor is, ha zárva az app"]);
+  if(spCid()&&!spHasTok())L.push(["s","🎧","Spotify összekapcsolása"]);
+  return L}
+var setupShown=false;
+function setupOpen(){
+  if(setupShown||!me||document.hidden)return;
+  var L=setupPending();if(!L.length)return;setupShown=true;
+  document.getElementById("setlist").innerHTML=L.map(function(x){return'<div class="ans">'+x[1]+" "+x[2]+"</div>"}).join("");
+  document.getElementById("setup").hidden=false}
+document.getElementById("setlater").onclick=function(){document.getElementById("setup").hidden=true};
+document.getElementById("setall").onclick=function(){
+  var L=setupPending().map(function(x){return x[0]}),has=function(k){return L.indexOf(k)>=0},
+    box=document.getElementById("setlist"),btn=this,perm=Promise.resolve(),
+    go=function(){if(has("s"))spConnect();else document.getElementById("setup").hidden=true};
+  if(has("n")){try{perm=Notification.requestPermission().then(function(){checkNear()})}catch(e){}}
+  if(has("t")){var tp=ntCreate();ntUI();try{navigator.clipboard.writeText(tp).catch(function(){})}catch(e){}
+    box.innerHTML='<div class="ans">📲 Telepítsd az <b>ntfy</b> appot (Android / iPhone), és iratkozz fel erre a témára (kimásoltam a vágólapra):<br><b style="word-break:break-all">'+esc(tp)+'</b></div>';
+    btn.textContent=has("s")?"Tovább a Spotifyhoz →":"Kész ✓";btn.onclick=function(){perm.then(go)};return}
+  btn.disabled=true;perm.then(go)};
+setInterval(setupOpen,3500);
 function renderTurns(){
   var el=document.getElementById("turns"),L=[];
   if(!me){el.hidden=true;return}
