@@ -34,6 +34,8 @@ h2{margin:0 0 10px;font-size:1.1rem}
 .who{display:flex;gap:8px;justify-content:center;margin-bottom:12px;flex-wrap:wrap}
 .pill{border:2px solid var(--soft);background:var(--card);color:var(--tx);border-radius:999px;padding:6px 14px;font-size:.9rem;cursor:pointer}
 .pill.sel{background:var(--pink);border-color:var(--pink);color:#fff}
+.tab.todo,.pill.todo{background:#e53935;border-color:#e53935;color:#fff}.tab .qe{filter:brightness(0) invert(1) drop-shadow(0 0 1px #6b5560) drop-shadow(0 0 1px #6b5560)}.tab.sel .qe,.tab.todo .qe{filter:brightness(0) invert(1)}
+.tab.todo.sel,.pill.todo.sel{box-shadow:0 0 0 3px var(--bg),0 0 0 5px #e53935}
 .cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .cal-h button{border:0;background:var(--soft);color:var(--tx);border-radius:12px;width:38px;height:38px;font-size:1.1rem;cursor:pointer}
 .cal-h strong{text-transform:capitalize}
@@ -84,7 +86,7 @@ body{transition:background .6s}
 <main hidden>
 <h1>RetekRéka ❤</h1>
 <p class="sub">Pécs és köztünk a távolság – de a szívünk közel van.</p>
-<div class="tabs"><button class="tab sel" data-tab="home">💗 Főoldal</button><button class="tab" data-tab="q">❓ Kérdés</button><button class="tab" data-tab="m">😊 Hangulat</button><button class="tab" data-tab="g">🎮 Játék</button><button class="tab" data-tab="f">🍽 Kaja</button><button class="tab" data-tab="r">💑 Randi</button></div>
+<div class="tabs"><button class="tab sel" data-tab="home">💗 Főoldal</button><button class="tab" data-tab="q"><span class="qe">❓</span> Kérdés</button><button class="tab" data-tab="m">😊 Hangulat</button><button class="tab" data-tab="g">🎮 Játék</button><button class="tab" data-tab="f">🍽 Kaja</button><button class="tab" data-tab="r">💑 Randi</button></div>
 <div id="tab-home">
 
 <section class="card" id="turns" hidden>
@@ -147,14 +149,14 @@ body{transition:background .6s}
   <div class="next" id="nextmeet"></div>
   <div style="text-align:center;margin-top:8px"><button class="chip" id="wkopen">📥 Munka beírása</button></div>
   <div id="wkbox" hidden style="margin-top:8px">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0"><span style="font-weight:600">Tartalék: hányadik sorban van az adat?</span><input type="number" id="wki" class="tin" style="width:70px" min="1" max="60"></div>
+    <div class="hd" style="margin-bottom:8px">Az app először a névből keresi meg Réka sorát. Ezt a számot csak akkor használja, ha a névből nem sikerül (a névsorban fentről számolva, egy személy N és É sora együtt egy sor).</div>
+    <details style="margin:8px 0"><summary>⚙ Személyek száma a táblázatban</summary><div style="margin-top:6px"><span>Személyek száma:</span> <input type="number" id="wkp" class="tin" style="width:70px" min="1" max="60"></div></details>
     <label class="up" style="display:block">📷 Beosztás képének kiválasztása<input type="file" id="wkimg" accept="image/*" hidden></label>
     <div style="display:flex;gap:6px;align-items:center;margin:8px 0"><span style="font-weight:600">Hónap:</span><input type="month" id="wkmonth" class="tin"></div>
     <canvas id="wkcv" style="width:100%;border-radius:10px;display:none"></canvas>
     <div class="stat" id="wkres"></div>
     <button class="save" id="wkimgok" hidden>✅ Beírom a talált napokat</button>
-    <details style="margin:8px 0"><summary>⚙ Beállítások a képhez</summary>
-      <div style="display:flex;gap:8px;align-items:center;margin-top:6px"><span>Személyek száma:</span><input type="number" id="wkp" class="tin" style="width:70px" min="1" max="60"><span>Réka hányadik:</span><input type="number" id="wki" class="tin" style="width:70px" min="1" max="60"></div>
-    </details>
     <div class="stat" style="margin:0 0 6px">Vagy kézzel: írd be a dátumokat (pl. 2026-12-12, 2026-12-13). Mindegyik napra bekerül egy „munka” bejegyzés Réka nevén. Csak napot (pl. 12, 13) is írhatsz, az a most megjelenített hónapra vonatkozik.</div>
     <textarea id="wkin" class="tin" style="width:100%;min-height:70px" placeholder="2026-12-12, 2026-12-13, …"></textarea>
     <button class="save" id="wkgo" style="margin-top:6px">Beírom a naptárba</button>
@@ -251,6 +253,13 @@ body{transition:background .6s}
     <div id="uno-box"></div>
     <div class="note">Szabályok: színre vagy számra/jelre rakhatsz, a színválasztót és a +4-et bármikor. Egyszerre bármennyi lapot letehetsz, ha ugyanaz a szám vagy jel (koppints többre, aztán „Lerak"). Kimaradás és megfordítás: újra te jössz. A +2 és +4 összeadódik: a +2-re +2 és +4 is jöhet, a +4-re +4 bármikor, +2 pedig csak abban a színben, amit a +4-es kért. Ha nem tudsz rátenni, húzod az egész összeget, és vége a körödnek. Ha nincs mit rakni, húzol egy lapot, és automatikusan a másik jön. Ha valaki az utolsó lapját +2/+4-gyel rakja le, a másik még rátehet, és akkor a kiment játékosnak kell húznia. UNO-t kell mondani, ha egy lapod marad (2 lapnál előre is megnyomhatod), különben a másik elkaphat: +2 lap.</div>
   </section>
+   <section class="card">
+    <h2>Csevegő 💬</h2>
+    <div id="ucmsgs" style="max-height:200px;overflow:auto;margin:6px 0"></div>
+    <div id="ucemo" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0"></div>
+    <div id="ucphr" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0"></div>
+    <div style="display:flex;gap:6px"><input id="uctxt" maxlength="200" autocomplete="off" placeholder="Trashtalk ide…" style="flex:1;min-width:0;border:2px solid var(--soft);border-radius:12px;padding:10px;background:var(--bg);color:var(--tx);font:inherit"><button class="chip" id="ucsend">Küldés ➤</button></div>
+   </section>
   </div>
   <div id="g-r" hidden>
   <section class="card">
@@ -511,7 +520,7 @@ document.querySelectorAll(".tab").forEach(function(b){b.onclick=function(){
 setInterval(renderQ,60000);renderQ();
 var MOODS=[["😭","sírós"],["😴","fáradt"],["😊","boldog"],["😢","szomorú"],["😠","ideges"],["😄","vidám"],null,["🤒","beteg"],["🥱","unatkozik"]];
 function ago(ts){var m=Math.floor((Date.now()-ts)/6e4);return m<1?"most":m<60?m+" perce":m<1440?Math.floor(m/60)+" órája":Math.floor(m/1440)+" napja"}
-function setMood(i){if(!me)return;moodFx(MOODS[i][0]);var o={m:i,ts:Date.now()};state.mood=state.mood||{};state.mood[me]=o;
+function setMood(i){if(!me)return;peeked=true;var pk=document.getElementById("moodpeek");if(pk)pk.remove();var o={m:i,ts:Date.now()};state.mood=state.mood||{};state.mood[me]=o;
   try{localStorage.setItem("rr_state",JSON.stringify(state))}catch(e){}
   if(base){lastWrite=Date.now();remote("PUT","state/mood/"+me,o).catch(function(){})}renderMood()}
 function moodFx(e){
@@ -586,6 +595,35 @@ function notifyMe(t,b){
       navigator.serviceWorker.getRegistration().then(function(r){if(r&&r.showNotification)r.showNotification(t,{body:b,vibrate:[200,100,200],tag:"retek-near"});else plain()}).catch(plain)}
     else plain()}}catch(e){}
   try{if(navigator.vibrate)navigator.vibrate([200,100,200])}catch(e){}}
+// Értesítés a másiknak (ntfy): Inkább…? válasz, játékban te jössz
+var pushC={},pushSent={};
+function pushTopicOf(k,cb){var c=pushC[k];if(c&&Date.now()-c.t<60000){cb(c.v);return}
+  fetch(base+"/push/"+k+".json").then(function(r){return r.json()}).then(function(v){pushC[k]={t:Date.now(),v:v};cb(v)}).catch(function(){})}
+function notifyOther(title,body){
+  if(!me||!base)return;var o=me==="a"?"b":"a",id=title+body,n=Date.now();
+  if(pushSent[id]&&n-pushSent[id]<15000)return;pushSent[id]=n;
+  pushTopicOf(o,function(tp){if(!tp||typeof tp!=="string")return;
+    fetch("https://ntfy.sh/",{method:"POST",body:JSON.stringify({topic:tp,title:title,message:body,tags:["heart"]})}).catch(function(){})})}
+function pushHook(m,p,b){
+  if(!me||b===undefined||b===null)return;var o=me==="a"?"b":"a",x=NAMES[me],q;
+  if(p==="unochat"&&m==="POST"){notifyOther("🃏 UNO csevegő",x+": "+String(b.t).slice(0,80));return}
+  if(p==="c4"){if(b.t===o&&!b.w)notifyOther("🔴 Connect 4",x+" lépett, te jössz!");return}
+  if(p==="uno"){if(b.turn===o&&!b.winner&&b.disc&&b.disc.length)notifyOther("🃏 UNO",x+" lépett, te jössz!");return}
+  if(p==="bs"){if(m==="PATCH"&&b.t===o&&!b.w)notifyOther("🚢 Torpedó",x+" lőtt, te jössz!");return}
+  if(p.indexOf("game/cur/log/")===0){notifyOther("💬 Szójáték",b.ok?x+" szerint kész a szó! 🎉":x+" lépett, te jössz!");return}
+  if(p==="game/cur"&&b.d===o&&b.id){notifyOther("💬 Szójáték","Új kör indult, te jössz!");return}
+  if(q=p.match(/^wyr\/([wr])\/ans\//)){var s=(W[q[1]]||{}).ans||{};
+    notifyOther(q[1]==="r"?"🔥 Inkább…? Romantikus":"🤔 Inkább…? Vicces",s[o]!==undefined?x+" is választott, nézzétek meg együtt!":x+" választott, te jössz!")}}
+function ntReg(){
+  if(!base||!me)return;var tp=ntTopic();
+  if(tp&&ntReg.d!==me+tp){ntReg.d=me+tp;remote("PUT","push/"+me,tp).catch(function(){ntReg.d=""})}}
+setInterval(ntReg,10000);
+// Helyi értesítés, ha háttérben van az oldal, és új dolog vár rád
+var todoPrev=null,TODOMSG={"q:d":"Napi kérdés vár rád","q:w":"Inkább…? (vicces): te jössz","q:r":"Inkább…? (romantikus): te jössz","g:c":"Connect 4: te jössz","g:b":"Torpedó: te jössz","g:w":"Szójáték: te jössz","g:u":"UNO: te jössz"};
+function todoNotify(T){
+  var cur=Object.keys(T.sub);
+  if(todoPrev){cur.forEach(function(k){if(!todoPrev[k]&&document.hidden&&!ntTopic()&&k!=="q:d")notifyMe("RetekRéka ❤",TODOMSG[k]||"Rád vár valami")})}
+  todoPrev={};cur.forEach(function(k){todoPrev[k]=1})}
 // Háttér-értesítés (ntfy időzített kézbesítés): 45%-nál, majd minden további 5%-nál jelez, akkor is, ha az app zárva van
 var NTH=[45,40,35,30,25,20,15,10,5];
 function ntTopic(){try{return me&&localStorage.getItem("rr_ntfy_"+me)}catch(e){return null}}
@@ -607,11 +645,11 @@ function schedNear(){
     if(h){delete next[t];save();fetch(ntUrl(tp,t),{method:"DELETE"}).then(post,post)}else post()})}
 document.getElementById("ntfybtn").onclick=function(){
   if(!me)return;var tp=ntTopic();
-  if(tp){if(confirm("Kikapcsolod a háttér-értesítést?")){NTH.forEach(function(t){fetch(ntUrl(tp,t),{method:"DELETE"}).catch(function(){})});try{localStorage.removeItem("rr_ntfy_"+me);localStorage.removeItem("rr_ns2_"+me)}catch(e){}}ntUI();return}
+  if(tp){if(confirm("Kikapcsolod a háttér-értesítést?")){NTH.forEach(function(t){fetch(ntUrl(tp,t),{method:"DELETE"}).catch(function(){})});try{localStorage.removeItem("rr_ntfy_"+me);localStorage.removeItem("rr_ns2_"+me)}catch(e){}ntReg.d="";if(base)remote("DELETE","push/"+me).catch(function(){})}ntUI();return}
   var a=new Uint8Array(8);crypto.getRandomValues(a);tp="retekreka-"+me+"-"+Array.prototype.map.call(a,function(x){return("0"+x.toString(16)).slice(-2)}).join("");
-  try{localStorage.setItem("rr_ntfy_"+me,tp)}catch(e){}
+  try{localStorage.setItem("rr_ntfy_"+me,tp)}catch(e){}ntReg();
   fetch("https://ntfy.sh/"+tp,{method:"POST",headers:{Title:"RetekReka"},body:"Működik! 💞 Ha ezt látod, a háttér-értesítés be van állítva."}).catch(function(){});
-  prompt("1) Telepítsd az ntfy appot (Android / iPhone)\n2) Az appban iratkozz fel erre a témára (másold ki):\n3) Kapsz egy tesztüzenetet. Ezután a szíved 45%-nál, majd minden további 5%-nál jelezni fog akkor is, ha az app zárva van.",tp);
+  prompt("1) Telepítsd az ntfy appot (Android / iPhone)\n2) Az appban iratkozz fel erre a témára (másold ki):\n3) Kapsz egy tesztüzenetet. Ezután a szíved 45%-nál, majd minden további 5%-nál jelezni fog, és értesítést kapsz akkor is, ha a másik válaszolt az Inkább…?-ben, vagy a játékokban te jössz. Mindez akkor is megy, ha az app zárva van.",tp);
   ntUI();checkNear()};
 function checkNear(){
   var nb=document.getElementById("notifbtn");
@@ -634,6 +672,39 @@ function renderTurns(){
   document.getElementById("turnlist").innerHTML=L.map(function(x){var mine=x[1]===me;
     return '<div class="ans" style="display:flex;justify-content:space-between;gap:8px'+(mine?';font-weight:700;color:var(--pink)':'')+'"><span>'+x[0]+'</span><span>'+(mine?"Te jössz!":esc(NAMES[x[1]])+" jön")+'</span></div>'}).join("")}
 setInterval(renderTurns,2000);
+// Piros fül/gomb, ha valamit neked kell csinálnod
+var TW={w:{},r:{}};
+function pollTW(){
+  if(!base)return;
+  ["w","r"].forEach(function(m){
+    fetch(base+"/wyr/"+m+".json").then(function(r){return r.json()}).then(function(d){TW[m]=d||{}}).catch(function(){})})}
+function wyrTodo(m){
+  var live=(wm===m&&!document.getElementById("tab-q").hidden),s=(live?W[m]:TW[m])||{},ot=me==="a"?"b":"a",an=s.ans||{},nx=s.nx||{};
+  if(an[ot]!==undefined&&an[me]===undefined)return true;
+  if(an[ot]!==undefined&&an[me]!==undefined&&nx[ot]&&!nx[me])return true;
+  return false}
+function todoSet(){
+  var T={tab:{},sub:{}},ot=me==="a"?"b":"a";
+  if(!me)return T;
+  var dk=todayKey(),dq=!(qa[dk]&&qa[dk][me]);
+  if(dq)T.sub["q:d"]=1;
+  if(wyrTodo("w"))T.sub["q:w"]=1;
+  if(wyrTodo("r"))T.sub["q:r"]=1;
+  if(c4&&c4.b&&!c4.w&&c4.t===me)T.sub["g:c"]=1;
+  if(bs&&bs.t===me&&!bs.w){var rdy=bs.ready||{};if(rdy.a&&rdy.b)T.sub["g:b"]=1}
+  if(game&&game.cur&&!game.cur.done){var c=game.cur,l=glog(c),last=l[l.length-1];
+    if(((!last||last.t==="guess")?c.d:(c.d==="a"?"b":"a"))===me)T.sub["g:w"]=1}
+  try{if(UNO.mine())T.sub["g:u"]=1}catch(e){}
+  if(cook[ot]&&cook[ot].t)T.tab.f=1;
+  Object.keys(T.sub).forEach(function(k){T.tab[k.charAt(0)]=1});
+  return T}
+function renderTodo(){
+  var T=todoSet();try{todoNotify(T)}catch(e){}
+  document.querySelectorAll(".tab").forEach(function(b){b.classList.toggle("todo",!!T.tab[b.dataset.tab])});
+  document.querySelectorAll("#qsub .pill").forEach(function(b){b.classList.toggle("todo",!!T.sub["q:"+b.dataset.q])});
+  document.querySelectorAll("#gsub .pill").forEach(function(b){b.classList.toggle("todo",!!T.sub["g:"+b.dataset.g])})}
+setInterval(renderTodo,1000);setInterval(pollTW,3000);
+
 function tgActive(){var g=state.together;return !!(g&&g.s&&!g.w&&Date.now()-g.s<1728e5)}
 function tgSave(){try{localStorage.setItem("rr_state",JSON.stringify(state))}catch(e){}}
 function tgStart(){if(!me)return;var o={s:Date.now(),by:me};state.together=o;tgSave();
@@ -912,6 +983,21 @@ document.getElementById("wkopen").onclick=function(){var b=document.getElementBy
   var p=1*localStorage.getItem("wk_p")||12,i=1*localStorage.getItem("wk_i")||9;document.getElementById("wkp").value=p;document.getElementById("wki").value=i};
 var wkFound=[];
 function wkNear(c,t,tol){return Math.abs(c[0]-t[0])<=tol&&Math.abs(c[1]-t[1])<=tol&&Math.abs(c[2]-t[2])<=tol}
+function wkLev(a,b){var m=[],i,j;for(i=0;i<=a.length;i++)m[i]=[i];for(j=1;j<=b.length;j++)m[0][j]=j;
+  for(i=1;i<=a.length;i++)for(j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return m[a.length][b.length]}
+function wkNorm(s){return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z]/g,"")}
+var wkOcrP=null,wkTok=0;
+function wkLoadOcr(){if(window.Tesseract)return Promise.resolve();if(wkOcrP)return wkOcrP;
+  wkOcrP=new Promise(function(ok,no){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";s.onload=ok;s.onerror=function(){wkOcrP=null;no(new Error("ocr"))};document.head.appendChild(s)});return wkOcrP}
+function wkFindName(cv,xa,xb,y0,y1){
+  var k=4,c=document.createElement("canvas");c.width=(xb-xa)*k;c.height=(y1-y0)*k;
+  var g=c.getContext("2d");g.imageSmoothingEnabled=true;g.imageSmoothingQuality="high";g.drawImage(cv,xa,y0,xb-xa,y1-y0,0,0,c.width,c.height);
+  return wkLoadOcr().then(function(){return Tesseract.createWorker("eng")}).then(function(w){
+    return w.setParameters({tessedit_pageseg_mode:"11"}).then(function(){return w.recognize(c)}).then(function(r){w.terminate();return r.data},function(e){w.terminate();throw e})
+  }).then(function(d){
+    var t=wkNorm(NAMES.b),best=null,bd=9;
+    (d.words||[]).forEach(function(w){var n=wkNorm(w.text);if(n.length<3)return;var dd=wkLev(n,t);if(dd<bd){bd=dd;best=w}});
+    return best&&bd<=1?y0+(best.bbox.y0+best.bbox.y1)/2/k:-1})}
 function wkRun(img){
   var res=document.getElementById("wkres"),ok=document.getElementById("wkimgok");ok.hidden=true;wkFound=[];
   var P=Math.max(1,+document.getElementById("wkp").value||12),IDX=Math.max(1,+document.getElementById("wki").value||9);
@@ -929,19 +1015,26 @@ function wkRun(img){
   if(st>=0)runs.push([st,last]);
   runs=runs.filter(function(r){return r[1]-r[0]>40*sc});
   if(!runs.length){res.textContent="Nem találom a névsort a képen.";return}
-  var y0=runs[0][0],y1=runs[runs.length-1][1],rowH=(y1-y0+1)/(P*2),L=xb+1.5,yN=y0+((IDX-1)*2+.5)*rowH,R=-1;
-  for(x=Math.round(L+150*sc);x<W;x++)if(wkNear(px(x,Math.round(yN)),PK,8)){R=x;break}
-  if(R<0){res.textContent="Nem találom a napok táblázatának jobb szélét (az összesítő oszlopot).";return}
-  var pitch=(R-L)/31,found=[],half,d,dx,dy,t,g;
-  for(half=0;half<2;half++){var ya=Math.round(y0+((IDX-1)*2+half+.5)*rowH);
-    for(d=0;d<31;d++){var cxm=Math.round(L+(d+.5)*pitch),hw=Math.floor(.35*pitch),hh=Math.max(1,Math.floor(rowH*.28));t=0;g=0;
-      for(dx=-hw;dx<=hw;dx++)for(dy=-hh;dy<=hh;dy++){t++;if(wkNear(px(cxm+dx,ya+dy),GR,30))g++}
-      if(g/t>.35&&found.indexOf(d+1)<0){found.push(d+1);cx.strokeStyle="#0066ff";cx.lineWidth=Math.max(2,2*sc);cx.strokeRect(L+d*pitch,y0+((IDX-1)*2)*rowH,pitch,rowH*2)}}}
-  found.sort(function(a,b){return a-b});
-  cx.strokeStyle="#ff2d55";cx.lineWidth=Math.max(2,2*sc);cx.strokeRect(L,y0+((IDX-1)*2)*rowH,R-L,rowH*2);
-  wkFound=found;
-  res.textContent=found.length?("A pirossal bekeretezett sorban "+found.length+" zöld H van: "+found.join(", ")+". Ha ez a Réka sora, nyomd meg a gombot."):"Ebben a sorban nem találtam zöld H-t. Ha rossz a sor (nem Réka), állítsd át a beállításokban, hogy Réka hányadik.";
-  ok.hidden=!found.length}
+  var y0=runs[0][0],y1=runs[runs.length-1][1],rowH=(y1-y0+1)/(P*2),L=xb+1.5;
+  res.textContent="Réka nevének keresése a képen… (az első alkalommal letölt egy szövegfelismerőt, ez eltarthat egy kicsit)";
+  var tk=++wkTok,nm=img._nm||(img._nm=wkFindName(cv,xa,xb+1,y0,y1+1).catch(function(){return -2}).then(function(v){if(v===-2)img._nm=null;return v}));
+  nm.then(function(yc){
+    if(tk!==wkTok)return;
+    var byName=yc>=0,cy=byName?yc:y0+((IDX-1)*2+1)*rowH,R=-1;
+    if(cy<rowH||cy>H-rowH){res.textContent="A sor kívül esik a képen. Írd át a tartalék sorszámot.";return}
+    for(x=Math.round(L+150*sc);x<W;x++)if(wkNear(px(x,Math.round(cy-rowH/2)),PK,14)){R=x;break}
+    if(R<0){res.textContent="Nem találom a napok táblázatának jobb szélét (az összesítő oszlopot).";return}
+    var pitch=(R-L)/31,found=[],half,d,dx,dy,t,g;
+    for(half=0;half<2;half++){var ya=Math.round(cy+(half-.5)*rowH);
+      for(d=0;d<31;d++){var cxm=Math.round(L+(d+.5)*pitch),hw=Math.floor(.35*pitch),hh=Math.max(1,Math.floor(rowH*.28));t=0;g=0;
+        for(dx=-hw;dx<=hw;dx++)for(dy=-hh;dy<=hh;dy++){t++;if(wkNear(px(cxm+dx,ya+dy),GR,40))g++}
+        if(g/t>.35&&found.indexOf(d+1)<0){found.push(d+1);cx.strokeStyle="#0066ff";cx.lineWidth=Math.max(2,2*sc);cx.strokeRect(L+d*pitch,cy-rowH,pitch,rowH*2)}}}
+    found.sort(function(a,b){return a-b});
+    cx.strokeStyle="#ff2d55";cx.lineWidth=Math.max(2,2*sc);cx.strokeRect(L,cy-rowH,R-L,rowH*2);
+    wkFound=found;
+    var how=byName?"A névből megtaláltam Réka sorát. ":(yc===-2?"A névfelismerő nem töltődött be (internet?), ezért ":"A névből nem találtam meg Réka sorát, ezért ")+"a tartalék, megadott "+IDX+". sort használtam. ";
+    res.textContent=how+(found.length?("A pirossal bekeretezett sorban "+found.length+" zöld H van: "+found.join(", ")+". Ha ez a Réka sora, nyomd meg a gombot."):"Ebben a sorban nem találtam zöld H-t. Ha rossz a sor, írd át fent, hogy hányadik sorban van az adat.");
+    ok.hidden=!found.length})}
 document.getElementById("wkimg").onchange=function(){var f=this.files[0];if(!f)return;var im=new Image(),u=URL.createObjectURL(f);
   im.onload=function(){URL.revokeObjectURL(u);window._wkimg=im;wkRun(im)};im.onerror=function(){document.getElementById("wkres").textContent="Ezt a képet nem tudom megnyitni."};im.src=u};
 document.getElementById("wkp").onchange=document.getElementById("wki").onchange=function(){if(window._wkimg)wkRun(window._wkimg)};
@@ -1488,16 +1581,43 @@ $("uno-box").onclick=function(e){
   else if(id==="u-clr"){sel=[];pw=null;render()}else if(id==="u-go")go(sel.slice());
   else if(b.dataset.c){var ix=pw;pw=null;if(ix)play(ix,b.dataset.c)}
   else if(b.dataset.i!==undefined&&!b.classList.contains("dim"))tap(+b.dataset.i)};
+var hc=0;
+function mine(){return !!(me&&S.disc&&S.disc.length&&!S.winner&&S.turn===me)}
 function poll(){
-  if(!base||$("g-u").hidden||$("tab-g").hidden)return;
-  fetch(base+"/uno.json").then(function(r){return r.json()}).then(function(d){if(!d)return;d=norm(d);if((d.v||0)>(S.v||0)){S=d;pw=null;sel=[];render()}}).catch(function(){})}
+  if(!base)return;var hid=$("g-u").hidden||$("tab-g").hidden;if(hid&&(++hc%4))return;
+  fetch(base+"/uno.json").then(function(r){return r.json()}).then(function(d){if(!d)return;d=norm(d);if((d.v||0)>(S.v||0)){S=d;pw=null;sel=[];if(!hid)render()}}).catch(function(){})}
 setInterval(poll,1000);
-return{open:function(){poll();render()},T:function(){return{S:function(){return S},deal:deal,play:play,drawCard:drawCard,legal:legal,key:key,wild:wild,set:function(x){S=x}}}}}
+return{mine:mine,open:function(){poll();render();pollUC();renderUC()},T:function(){return{S:function(){return S},deal:deal,play:play,drawCard:drawCard,legal:legal,key:key,wild:wild,set:function(x){S=x}}}}}
 )();
+// UNO csevegő (emoji + trashtalk)
+var uc={},ucJson="",ucLast=0,UCE=["😂","😭","😈","🔥","👀","🤡","💀","😘","🫡","🥶","🙈","👏"],UCP=["Húzz csak! 😏","Ez fájt? 😈","Nem tudsz legyőzni 😎","Lassú vagy! 🐌","UNO! 🔔","Ez nem igazság! 😤","Jó kör volt 😘","Kérek egy +4-et 🙏"];
+function ucList(){return Object.keys(uc).map(function(k){return uc[k]}).filter(function(m){return m&&m.t}).sort(function(a,b){return (a.ts||0)-(b.ts||0)}).slice(-40)}
+function renderUC(){
+  var el=document.getElementById("ucmsgs");if(!el)return;var L=ucList(),h="";
+  L.forEach(function(m){var mi=m.by===me,big=/^[\u{1F300}-\u{1FAFF}☀-➿\s]{1,8}$/u.test(m.t);
+    h+='<div style="text-align:'+(mi?"right":"left")+';margin:4px 0"><span style="display:inline-block;max-width:80%;padding:'+(big?"2px 10px":"6px 10px")+';border-radius:14px;text-align:left;background:'+(m.by==="a"?"#2ecc4033":"#ffd23f55")+'"><b style="font-size:.72rem;display:block">'+esc(NAMES[m.by]||"")+'</b><span style="font-size:'+(big?"1.8rem":"1rem")+'">'+esc(m.t)+'</span></span></div>'});
+  var end=el.scrollHeight-el.scrollTop-el.clientHeight<50;
+  el.innerHTML=h||'<div class="hd">Még nincs üzenet. Kezdd te! 😈</div>';if(end)el.scrollTop=el.scrollHeight}
+function ucSend(t){
+  t=String(t||"").trim();if(!t||!me)return;var o={by:me,t:t.slice(0,200),ts:Date.now()};
+  uc["l"+o.ts]=o;ucLast=Date.now();if(base)remote("POST","unochat",o).catch(function(){});renderUC()}
+(function(){
+  var e=document.getElementById("ucemo"),p=document.getElementById("ucphr");if(!e)return;
+  e.innerHTML=UCE.map(function(x){return '<button type="button" class="chip" style="font-size:1.25rem;padding:4px 9px">'+x+'</button>'}).join("");
+  p.innerHTML=UCP.map(function(x){return '<button type="button" class="chip">'+esc(x)+'</button>'}).join("");
+  e.onclick=p.onclick=function(ev){var b=ev.target.closest&&ev.target.closest("button");if(b)ucSend(b.textContent)};
+  document.getElementById("ucsend").onclick=function(){var i=document.getElementById("uctxt");ucSend(i.value);i.value=""};
+  document.getElementById("uctxt").onkeydown=function(ev){if(ev.key==="Enter"){ev.preventDefault();document.getElementById("ucsend").onclick()}}})();
+function pollUC(){
+  var g=document.getElementById("g-u"),t=document.getElementById("tab-g");
+  if(!base||!g||g.hidden||t.hidden)return;
+  fetch(base+"/unochat.json").then(function(r){return r.json()}).then(function(d){
+    if(Date.now()-ucLast<1500)return;d=d||{};var j=JSON.stringify(d);if(j===ucJson)return;ucJson=j;uc=d;renderUC()}).catch(function(){})}
+setInterval(pollUC,1500);
 // Közös szinkron (Firebase Realtime Database, REST)
 var CANDS=["https://retekreka-e08e5-default-rtdb.europe-west1.firebasedatabase.app"];
 var note=document.getElementById("syncnote"),lastJson="";
-function remote(method,path,body){return fetch(base+"/"+path+".json",{method:method,headers:{"Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body)})}
+function remote(method,path,body){var r=fetch(base+"/"+path+".json",{method:method,headers:{"Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body)});try{pushHook(method,path,body)}catch(e){}return r}
 function uploadPhoto(k,file,el){
   el.textContent="Feltöltés…";
   var img=new Image(),u=URL.createObjectURL(file);
@@ -1531,11 +1651,12 @@ function moodPeek(){
   if(peeked||!me||(!pulled&&base))return;
   var o=me==="a"?"b":"a",m=state.mood&&state.mood[o];
   if(!m||!MOODS[m.m]){peeked=true;return}
-  peeked=true;var e=document.createElement("div");
-  e.style.cssText="position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:99;background:var(--card);color:var(--tx);padding:16px 24px;border-radius:20px;box-shadow:0 8px 28px rgba(0,0,0,.3);text-align:center;opacity:1;transition:opacity .9s;pointer-events:none";
-  e.innerHTML='<div style="font-size:3rem">'+MOODS[m.m][0]+'</div><div><b>'+esc(NAMES[o])+'</b> · '+MOODS[m.m][1]+' · '+ago(m.ts)+'</div>';
+  peeked=true;var e=document.createElement("div");e.id="moodpeek";
+  e.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);z-index:99;background:var(--card);color:var(--tx);padding:8px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);text-align:center;font-size:.85rem;opacity:1;transition:opacity 1s;pointer-events:none";
+  e.innerHTML='<div style="font-size:1.5rem">'+MOODS[m.m][0]+'</div><div><b>'+esc(NAMES[o])+'</b> · '+MOODS[m.m][1]+' · '+ago(m.ts)+'</div>';
   document.body.appendChild(e);
-  setTimeout(function(){e.style.opacity="0"},1700);setTimeout(function(){e.remove()},2700)}
+  setTimeout(function(){e.style.opacity="0"},3000);setTimeout(function(){e.remove()},4100)}
+document.addEventListener("pointerdown",function(){var x=document.getElementById("moodpeek");if(x)x.remove()},true);
 function pull(){
   if(!base||dragging||Date.now()-lastWrite<1500)return;
   fetch(base+"/state.json").then(function(r){return r.json()}).then(function(d){
